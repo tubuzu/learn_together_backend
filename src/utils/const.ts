@@ -42,7 +42,7 @@ export const accessTokenCookieOptions: CookieOptions = {
     // domain: "www.dtrbinh.store", // Đặt tên miền của server ở đây
     domain: "learn-together-app.azurewebsites.net", // Đặt tên miền của server ở đây
     path: "/",
-    sameSite: "strict", // Hoặc "strict" tùy theo yêu cầu
+    sameSite: "lax", // Hoặc "strict" tùy theo yêu cầu
     secure: true, // Nếu bạn sử dụng HTTPS, hãy đặt true, nếu không, đặt false
     // domain: "localhost",
     // path: "/",
