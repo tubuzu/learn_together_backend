@@ -26,6 +26,26 @@ export const searchSubject = async (req: Request, res: Response) => {
   });
 };
 
+//@description     Get or Search all subjects
+//@route           GET /api/v1/admin/subject?search=
+//@access          Public
+export const getSubjectById = async (req: Request, res: Response) => {
+  const subjectId = req.params.subjectId;
+  if (!subjectId)
+    res.status(StatusCodes.OK).json({
+      msg: "subjectId is missing!",
+    });
+  const subject = await SubjectModel.findOne({
+    _id: subjectId,
+  });
+  if (!subject) throw new NotFoundError("Subject not found!");
+  res.status(StatusCodes.OK).json({
+    data: {
+      subject,
+    },
+  });
+};
+
 /**
  * @description Create subject
  * @route POST /api/v1/admin/subject/create

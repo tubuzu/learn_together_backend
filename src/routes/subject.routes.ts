@@ -2,6 +2,7 @@ import express from "express";
 import {
   createSubject,
   deleteSubject,
+  getSubjectById,
   searchSubject,
   updateSubject,
 } from "../controllers/subject.controller.js";
@@ -12,6 +13,7 @@ import {
 export const subjectRoutes = express.Router();
 
 subjectRoutes.route("/subject").get(searchSubject);
+subjectRoutes.route("/subject/:subjectId").get(getSubjectById);
 subjectRoutes
   .route("/admin/subject")
   .post([deserializeAdmin, requireUser], createSubject);
