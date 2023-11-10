@@ -8,7 +8,6 @@ import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { RequestState } from "../utils/const.js";
 import { findAndUpdateTutor } from "../service/tutor.service.js";
-import { TutorModel } from "../models/tutor.model.js";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { processFileMiddleware } from "../middlewares/upload.middleware.js";
 
@@ -104,7 +103,7 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
 //@access          Public
-export const getUserProofsOfLevel = async (req: Request, res: Response) => {
+export const getAllUserProofOfLevel = async (req: Request, res: Response) => {
   let proofs = await ProofOfLevelModel.find({
     user: res.locals.userData.user,
     isDeleted: false,
@@ -120,7 +119,103 @@ export const getUserProofsOfLevel = async (req: Request, res: Response) => {
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
 //@access          Public
-export const getUserProofOfLevelRequests = async (
+export const getUserProofOfLevelById = async (req: Request, res: Response) => {
+  const proofId = req.params.proofId;
+  if (!proofId)
+    res.status(StatusCodes.OK).json({
+      msg: "Proof of Level Id is required!",
+    });
+  let proof = await ProofOfLevelModel.findOne({
+    _id: proofId,
+    user: res.locals.userData.user,
+    isDeleted: false,
+  });
+  if (!proof) throw new NotFoundError("Proof of Level not found!");
+
+  return res.status(StatusCodes.OK).json({
+    data: {
+      proof,
+    },
+  });
+};
+
+//@description     Get or Search all tutors
+//@route           GET /api/v1/tutor?search=&subjectId=
+//@access          Public
+export const getUserProofOfLevelRequestById = async (
+  req: Request,
+  res: Response
+) => {
+  const requestId = req.params.requestId;
+  if (!requestId)
+    res.status(StatusCodes.OK).json({
+      msg: "Request Id is required!",
+    });
+  let request = await ProofOfLevelRequestModel.findOne({
+    _id: requestId,
+    sender: res.locals.userData.user,
+    isDeleted: false,
+  });
+  if (!request) throw new NotFoundError("Request not found!");
+
+  return res.status(StatusCodes.OK).json({
+    data: {
+      proof: request,
+    },
+  });
+};
+
+//@description     Get or Search all tutors
+//@route           GET /api/v1/tutor?search=&subjectId=
+//@access          Public
+export const getProofOfLevelRequestById = async (
+  req: Request,
+  res: Response
+) => {
+  const requestId = req.params.requestId;
+  if (!requestId)
+    res.status(StatusCodes.OK).json({
+      msg: "Request Id is required!",
+    });
+  let request = await ProofOfLevelRequestModel.findOne({
+    _id: requestId,
+    isDeleted: false,
+  });
+  if (!request) throw new NotFoundError("Request not found!");
+
+  return res.status(StatusCodes.OK).json({
+    data: {
+      proof: request,
+    },
+  });
+};
+
+//@description     Get or Search all tutors
+//@route           GET /api/v1/tutor?search=&subjectId=
+//@access          Public
+export const getProofOfLevelById = async (req: Request, res: Response) => {
+  const proofId = req.params.proofId;
+  if (!proofId)
+    res.status(StatusCodes.OK).json({
+      msg: "Proof of Level Id is required!",
+    });
+  let proof = await ProofOfLevelModel.findOne({
+    _id: proofId,
+    isDeleted: false,
+  });
+  if (!proof) throw new NotFoundError("Proof of Level not found!");
+
+  return res.status(StatusCodes.OK).json({
+    data: {
+      proof,
+    },
+  });
+};
+
+//@description     Get or Search all tutors
+//@route           GET /api/v1/tutor?search=&subjectId=
+//@access          Public
+export const getAllUserProofOfLevelRequest = async (
   req: Request,
   res: Response
 ) => {
