@@ -8,6 +8,7 @@ import {
   acceptProofOfLevelRequest,
   deleteProofOfLevel,
   getAllProofOfLevelRequest,
+  getUserProofOfLevelRequests,
   getUserProofsOfLevel,
   rejectProofOfLevelRequest,
   sendProofOfLevelRequest,
@@ -19,6 +20,9 @@ export const proofOfLevelRoutes = express.Router();
 proofOfLevelRoutes
   .route("/proof-of-level")
   .get([deserializeUser, requireUser], getUserProofsOfLevel);
+proofOfLevelRoutes
+  .route("/proof-of-level/request")
+  .get([deserializeUser, requireUser], getUserProofOfLevelRequests);
 proofOfLevelRoutes
   .route("/proof-of-level/request")
   .post([deserializeUser, requireUser], sendProofOfLevelRequest);

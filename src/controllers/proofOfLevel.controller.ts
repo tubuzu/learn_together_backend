@@ -25,15 +25,28 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
       msg: "Subject is required!",
     });
 
-  const tutor = await TutorModel.findOne({
+  const proofs = await ProofOfLevelModel.find({
     user: res.locals.userData.user,
-  }).populate("proofsOfLevel");
+    subject: subjectId,
+    isDeleted: false,
+  });
 
-  if (tutor.proofsOfLevel.some((proof: any) => proof.subject === subjectId)) {
+  if (proofs.length > 0)
     throw new BadRequestError(
       "Proof of level for this subject already exists!"
     );
-  }
+
+  const requests = await ProofOfLevelRequestModel.find({
+    sender: res.locals.userData.user,
+    subject: subjectId,
+    state: RequestState.WAITING,
+    isDeleted: false,
+  });
+
+  if (requests.length > 0)
+    throw new BadRequestError(
+      "Proof of level request for this subject already exists!"
+    );
 
   let documents: any[] = [];
   if (req.files && "documents" in req.files && req.files.documents) {
@@ -100,6 +113,35 @@ export const getUserProofsOfLevel = async (req: Request, res: Response) => {
   return res.status(StatusCodes.OK).json({
     data: {
       proofs,
+    },
+  });
+};
+
+//@description     Get or Search all tutors
+//@route           GET /api/v1/tutor?search=&subjectId=
+//@access          Public
+export const getUserProofOfLevelRequests = async (
+  req: Request,
+  res: Response
+) => {
+  let requestState = req.query.requestState as string;
+
+  let requests = await ProofOfLevelRequestModel.find(
+    requestState
+      ? {
+          sender: res.locals.userData.user,
+          state: requestState,
+          isDeleted: false,
+        }
+      : {
+          sender: res.locals.userData.user,
+          isDeleted: false,
+        }
+  );
+
+  return res.status(StatusCodes.OK).json({
+    data: {
+      requests,
     },
   });
 };
