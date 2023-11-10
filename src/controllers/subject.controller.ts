@@ -18,8 +18,12 @@ export const searchSubject = async (req: Request, res: Response) => {
         isDeleted: false,
       };
 
-  const subject = await SubjectModel.find(keyword as Record<string, any>);
-  res.send(subject);
+  const subjects = await SubjectModel.find(keyword as Record<string, any>);
+  res.status(StatusCodes.OK).json({
+    data: {
+      subjects,
+    },
+  });
 };
 
 /**

@@ -65,7 +65,7 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
 
           return url;
         } catch (error: any) {
-          return res.status(400).send(error.message);
+          return res.status(400).json({ msg: error.message });
         }
       })
     );

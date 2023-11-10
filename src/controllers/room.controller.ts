@@ -29,8 +29,10 @@ export const searchRoom = async (req: Request, res: Response) => {
         isDeleted: false,
       };
 
-  const subject = await RoomModel.find(keyword as Record<string, any>);
-  res.send(subject);
+  const rooms = await RoomModel.find(keyword as Record<string, any>);
+  res.status(StatusCodes.OK).json({
+    data: { rooms },
+  });
 };
 
 /**
@@ -59,43 +61,6 @@ export const createRoom = async (req: Request, res: Response) => {
     description,
   } = req.body;
 
-  let documents: any[] = [];
-  if (req.files && "documents" in req.files && req.files.documents) {
-    documents = await Promise.all(
-      req.files.documents.map(async (file) => {
-        try {
-          const dateTime = giveCurrentDateTime();
-
-          const storageRef = ref(
-            storage,
-            `rooms/${room._id}/documents/${
-              file.originalname + "___" + dateTime
-            }`
-          );
-
-          // Create file metadata including the content type
-          const metadata = {
-            contentType: file.mimetype,
-          };
-
-          // Upload the file in the bucket storage
-          const snapshot = await uploadBytesResumable(
-            storageRef,
-            file.buffer,
-            metadata
-          );
-          //by using uploadBytesResumable we can control the progress of uploading like pause, resume, cancel
-
-          // Grab the public url
-          const document = (await getDownloadURL(snapshot.ref)) as string;
-          return document;
-        } catch (error: any) {
-          return res.status(400).send(error.message);
-        }
-      })
-    );
-  }
-
   const room = await RoomModel.create({
     roomName,
     subject,
@@ -110,11 +75,6 @@ export const createRoom = async (req: Request, res: Response) => {
 
   if (!room) throw new BadRequestError("Something went wrong!");
 
-  if (documents.length > 0) {
-    room.courseDocumentList = documents;
-    await room.save();
-  }
-
   return res.status(StatusCodes.CREATED).json({
     data: { room: room },
   });
@@ -126,9 +86,12 @@ export const createRoom = async (req: Request, res: Response) => {
  */
 export const updateRoom = async (req: Request, res: Response) => {
   const { roomId } = req.params;
-  let room = await RoomModel.findById(roomId);
+  let room = await RoomModel.findOne({
+    _id: roomId,
+    isDeleted: false,
+  });
 
-  if (room.isDeleted) throw new Error("Room deleted!");
+  if (!room) throw new NotFoundError("Room not found!");
 
   let currentTime = new Date();
   if (currentTime >= room.startTime && currentTime <= room.endTime)
@@ -154,72 +117,6 @@ export const updateRoom = async (req: Request, res: Response) => {
         new: true,
       }
     );
-  }
-
-  let documents: any[] = [];
-  console.log(req.files == undefined);
-  if (req.files && "documents" in req.files && req.files.documents) {
-    documents = await Promise.all(
-      req.files.documents.map(async (file) => {
-        try {
-          const dateTime = giveCurrentDateTime();
-
-          const storageRef = ref(
-            storage,
-            `rooms/${room._id}/documents/${
-              file.originalname + "___" + dateTime
-            }`
-          );
-
-          // Create file metadata including the content type
-          const metadata = {
-            contentType: file.mimetype,
-          };
-          // Convert the buffer to an array buffer
-          // const arrayBuffer = file.buffer.buffer.slice(file.buffer.byteOffset, file.buffer.byteOffset + file.buffer.byteLength);
-          // Upload the file in the bucket storage
-          // const snapshot = await uploadBytesResumable(storageRef, arrayBuffer, metadata);
-          // Upload the file in the bucket storage
-          const snapshot = await uploadBytesResumable(
-            storageRef,
-            file.buffer,
-            metadata
-          );
-          //by using uploadBytesResumable we can control the progress of uploading like pause, resume, cancel
-
-          // Grab the public url
-          const document = (await getDownloadURL(snapshot.ref)) as string;
-          return document;
-        } catch (error: any) {
-          return res.status(400).send(error.message);
-        }
-      })
-    );
-  }
-
-  if (documents.length > 0) {
-    room.courseDocumentList = documents;
-    await room.save();
-  }
-
-  const deletedUrl = req.body.deletedUrl; // Mảng các url cần xóa
-
-  if (deletedUrl && deletedUrl.length > 0) {
-    // Duyệt qua từng url
-    for (let url of deletedUrl) {
-      // Tạo một tham chiếu đến file trong bucket, ví dụ: 'rooms/room1/documents/file1.pdf'
-      const filePath = url
-        .replace("https://firebasestorage.googleapis.com/v0/b/", "")
-        .split("?")[0];
-      const fileRef = ref(storage, filePath);
-      // Xóa file khỏi Firebase Storage
-      await deleteObject(fileRef);
-      // Xóa url khỏi mảng documents của room
-      room.documents = room.documents.filter((u: any) => u !== url);
-    }
-
-    // Lưu lại room model
-    await room.save();
   }
 
   const {
@@ -261,7 +158,9 @@ export const updateRoom = async (req: Request, res: Response) => {
     throw new BadRequestError("Something went wrong!");
   }
 
-  return res.status(StatusCodes.OK).send(room);
+  return res.status(StatusCodes.OK).json({
+    data: room,
+  });
 };
 
 /**

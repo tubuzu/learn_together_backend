@@ -182,7 +182,9 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       throw new BadRequestError("Something went wrong!");
     }
 
-    return res.status(StatusCodes.OK).send(user);
+    return res.status(StatusCodes.OK).json({
+      data: user,
+    });
   } else return res.status(StatusCodes.OK);
 };
 
