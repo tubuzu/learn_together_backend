@@ -36,7 +36,7 @@ proofOfLevelRequestRoutes
   .route("/admin/request/proof-of-level/:requestId")
   .get([deserializeAdmin, requireUser], getProofOfLevelRequestById);
 proofOfLevelRequestRoutes
-  .route("/admin/request/proof-of-level-by-user")
+  .route("/admin/request/user/proof-of-level")
   .get([deserializeAdmin, requireUser], getAllProofOfLevelRequestByUserId);
 proofOfLevelRequestRoutes
   .route("/admin/request/proof-of-level/accept")

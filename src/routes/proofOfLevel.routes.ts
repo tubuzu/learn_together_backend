@@ -21,7 +21,7 @@ proofOfLevelRoutes
   .route("/proof-of-level/:proofId")
   .get(getProofOfLevelById);
 proofOfLevelRoutes
-  .route("/proof-of-level-by-user")
+  .route("/user/proof-of-level")
   .get(getAllProofOfLevelByUserId);
 
 //Admin
