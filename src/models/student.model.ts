@@ -27,7 +27,7 @@ studentSchema.methods.delete = async function () {
 };
 
 export interface StudentDocument extends Document {
-  user: mongoose.Types.ObjectId;
+  user: string;
 
   studentCode: string;
   activityClass: string;

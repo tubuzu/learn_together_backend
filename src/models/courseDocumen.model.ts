@@ -36,11 +36,11 @@ courseDocumentSchema.methods.delete = async function () {
 };
 
 export interface CourseDocumentDocument extends Document {
-  uploader: mongoose.Schema.Types.ObjectId;
-  relatedSubjects: mongoose.Schema.Types.ObjectId[];
+  uploader: string;
+  relatedSubjects: string[];
   documentURLs: string[];
   noteOfUploader?: string;
-  request: mongoose.Schema.Types.ObjectId;
+  request: string;
 
   isDeleted: boolean;
   deletedAt: Date;

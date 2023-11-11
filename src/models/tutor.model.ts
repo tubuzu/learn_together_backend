@@ -17,9 +17,9 @@ const tutorSchema = new mongoose.Schema<TutorDocument>(
 export const TutorModel = mongoose.model("Tutor", tutorSchema);
 
 export interface TutorDocument extends Document {
-  user: mongoose.Schema.Types.ObjectId;
+  user: string;
 
-  proofsOfLevel?: mongoose.Schema.Types.ObjectId[];
+  proofsOfLevel?: string[];
 
   isDeleted: boolean;
   deletedAt?: Date;

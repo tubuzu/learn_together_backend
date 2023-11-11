@@ -28,9 +28,9 @@ export const ProofOfLevelModel = mongoose.model(
 );
 
 export interface ProofOfLevelDocument extends Document {
-  subject: mongoose.Schema.Types.ObjectId;
+  subject: string;
   documentURLs: string[];
-  request: mongoose.Schema.Types.ObjectId;
+  request: string;
   noteOfSender?: string;
 
   isDeleted: boolean;

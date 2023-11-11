@@ -38,12 +38,12 @@ export const CourseDocumentRequestModel = mongoose.model(
 );
 
 export interface CourseDocumentRequestDocument extends Document {
-  uploader: mongoose.Schema.Types.ObjectId;
-  relatedSubjects: mongoose.Schema.Types.ObjectId[];
+  uploader: string;
+  relatedSubjects: string[];
   documentURLs: string[];
   noteOfUploader?: string;
   state: string;
-  reviewer?: mongoose.Schema.Types.ObjectId;
+  reviewer?: string;
   noteOfReviewer?: string;
 
   isDeleted: boolean;

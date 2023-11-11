@@ -32,12 +32,12 @@ export const ProofOfLevelRequestModel = mongoose.model(
 );
 
 export interface ProofOfLevelRequestDocument extends Document {
-  subject: mongoose.Schema.Types.ObjectId;
+  subject: string;
   documentURLs: string[];
   state: string;
-  sender: mongoose.Schema.Types.ObjectId;
+  sender: string;
   noteOfSender?: string;
-  reviewer?: mongoose.Schema.Types.ObjectId;
+  reviewer?: string;
   noteOfReviewer?: string;
 
   isDeleted: boolean;

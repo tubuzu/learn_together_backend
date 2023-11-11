@@ -35,11 +35,11 @@ export const ParticipantRequestModel = mongoose.model(
 );
 
 export interface ParticipantRequestDocument extends Document {
-  user: mongoose.Schema.Types.ObjectId;
-  room: mongoose.Schema.Types.ObjectId;
+  user: string;
+  room: string;
   noteOfSender: string;
   state: string;
-  reviewer: mongoose.Schema.Types.ObjectId;
+  reviewer: string;
   noteOfReviewer: string;
 
   isDeleted: boolean;

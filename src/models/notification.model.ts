@@ -24,7 +24,7 @@ export const NotificationModel = mongoose.model(
 );
 
 export interface NotificationDocument extends Document {
-  user: mongoose.Schema.Types.ObjectId;
+  user: string;
   content: string;
   isRead: boolean;
   notificationType: string;

@@ -143,10 +143,10 @@ export interface UserDocument extends Document {
   background?: string;
   about?: string;
 
-  student: mongoose.Schema.Types.ObjectId;
-  tutor: mongoose.Schema.Types.ObjectId;
+  student: string;
+  tutor: string;
 
-  notifications?: mongoose.Schema.Types.ObjectId[];
+  notifications?: string[];
 
   passwordResetToken?: string;
   accountStatus: boolean;

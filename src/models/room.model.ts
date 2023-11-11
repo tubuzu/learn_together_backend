@@ -58,22 +58,22 @@ export const RoomModel = mongoose.model("Room", roomSchema);
 
 export interface RoomDocument extends Document {
   roomName: string;
-  subject: mongoose.Schema.Types.ObjectId;
-  creator: mongoose.Schema.Types.ObjectId;
-  hostUser?: mongoose.Schema.Types.ObjectId;
+  subject: string;
+  creator: string;
+  hostUser?: string;
 
-  tutor?: mongoose.Schema.Types.ObjectId;
-  participants: mongoose.Schema.Types.ObjectId[];
+  tutor?: string;
+  participants: string[];
   maxParticipants: number;
-  registers: mongoose.Schema.Types.ObjectId[];
+  registers: string[];
   roomState: string;
 
-  location: mongoose.Schema.Types.ObjectId;
+  location: string;
   startTime: Date;
   endTime: Date;
   tuitionFee: number;
   description: string;
-  courseDocumentList: mongoose.Schema.Types.ObjectId[];
+  courseDocumentList: string[];
 
   isPublicRoom: boolean;
   ownerApprovalRequired: boolean;

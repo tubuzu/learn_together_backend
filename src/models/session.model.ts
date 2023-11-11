@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export interface SessionDocument extends mongoose.Document {
-  user: mongoose.Schema.Types.ObjectId;
+  user: string;
   valid: boolean;
   userAgent: string;
 

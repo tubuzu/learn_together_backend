@@ -21,6 +21,7 @@ import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 import cors from "cors";
 import rateLimiter from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import { proofOfLevelRequestRoutes } from "./routes/proofOfLevel.request.routes.js";
 
 const app = express();
 app.set("trust proxy", (ip: any) => {
@@ -67,6 +68,7 @@ app.use("/api/v1", userRoutes);
 app.use("/api/v1", studentRoutes);
 app.use("/api/v1", tutorRoutes);
 app.use("/api/v1", proofOfLevelRoutes);
+app.use("/api/v1", proofOfLevelRequestRoutes);
 app.use("/api/v1", roomRoutes);
 app.use("/api/v1", subjectRoutes);
 
