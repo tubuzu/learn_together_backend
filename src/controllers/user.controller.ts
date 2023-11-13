@@ -193,10 +193,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
  * @route GET /api/v1/user/:userId
  */
 export const getAllUsersProfile = async (req: Request, res: Response) => {
-  const users = await UserModel.find({})
-    .populate("student")
-    .populate("tutor")
-    .exec();
+  const users = await UserModel.find({});
 
   return res.status(StatusCodes.OK).json({
     data: {

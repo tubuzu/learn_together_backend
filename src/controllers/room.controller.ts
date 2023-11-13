@@ -1,18 +1,10 @@
 import { Request, Response } from "express";
-import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { UnauthenticatedError } from "../errors/unauthenticated.error.js";
 import { LocationModel } from "../models/location.model.js";
 import { RoomModel } from "../models/room.model.js";
 import { findAndUpdateRoom } from "../service/room.service.js";
-import { giveCurrentDateTime } from "../utils/upload-file.js";
-import { storage } from "../config/firebase.config.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { findAndUpdateLocation } from "../service/location.service.js";
 

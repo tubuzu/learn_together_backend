@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { NotFoundError } from "../errors/not-found.error.js";
-import { findAndUpdateTutor } from "../service/tutor.service.js";
+import { findAndUpdateUser } from "../service/user.service.js";
 
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
@@ -85,9 +85,9 @@ export const deleteProofOfLevel = async (req: Request, res: Response) => {
     throw new NotFoundError("Proof of level not found!");
   }
 
-  await findAndUpdateTutor(
+  await findAndUpdateUser(
     {
-      user: proof.user,
+      _id: proof.user,
     },
     {
       $pull: { proofsOfLevel: proofOfLevelId },

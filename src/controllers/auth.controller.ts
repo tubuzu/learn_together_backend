@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request.error.js";
-import { StudentModel } from "../models/student.model.js";
 import { StatusCodes } from "http-status-codes";
-import { TutorModel } from "../models/tutor.model.js";
+// import { TutorModel } from "../models/tutor.model.js";
 import { AdminModel } from "../models/admin.model.js";
 import {
   accessTokenCookieOptions,
@@ -16,7 +15,6 @@ import lodashPkg from "lodash";
 import SessionModel from "../models/session.model.js";
 import { createSession, updateSession } from "../service/session.service.js";
 import { UserModel } from "../models/user.model.js";
-import { NotFoundError } from "../errors/not-found.error.js";
 import {
   getGoogleOAuthTokens,
   getGoogleUser,
@@ -71,23 +69,23 @@ export const registerUser = async (req: Request, res: Response) => {
   await sendEmail(to, from, subject, body);
 
   // create student
-  const student = await StudentModel.create({
-    user: user._id,
-  });
-  if (!student) {
-    throw new BadRequestError("Something went wrong!");
-  }
-  // create student
-  const tutor = await TutorModel.create({
-    user: user._id,
-  });
-  if (!tutor) {
-    throw new BadRequestError("Something went wrong!");
-  }
+  // const student = await StudentModel.create({
+  //   user: user._id,
+  // });
+  // if (!student) {
+  //   throw new BadRequestError("Something went wrong!");
+  // }
+  // // create student
+  // const tutor = await TutorModel.create({
+  //   user: user._id,
+  // });
+  // if (!tutor) {
+  //   throw new BadRequestError("Something went wrong!");
+  // }
 
-  user.student = student._id;
-  user.tutor = tutor._id;
-  await user.save();
+  // user.student = student._id;
+  // user.tutor = tutor._id;
+  // await user.save();
 
   return res.status(StatusCodes.CREATED).json({
     msg: "User has been registered successfully",
@@ -104,7 +102,7 @@ export const loginUser = async (req: Request, res: Response) => {
   const user = await UserModel.findOne({ email }).select(
     "+password +accountStatus"
   );
-  
+
   if (!user || !(await user.matchPassword(password))) {
     throw new BadRequestError("Invalid Email or Password");
   }
@@ -177,21 +175,21 @@ export const googleOauthHandler = async (req: Request, res: Response) => {
       avatar: googleUser.picture,
       accountStatus: true,
     });
-    const student = await StudentModel.create({
-      user: user._id,
-    });
-    if (!student) {
-      throw new BadRequestError("Something went wrong!");
-    }
-    const tutor = await TutorModel.create({
-      user: user._id,
-    });
-    if (!tutor) {
-      throw new BadRequestError("Something went wrong!");
-    }
-    user.student = student._id;
-    user.tutor = tutor._id;
-    await user.save();
+    // const student = await StudentModel.create({
+    //   user: user._id,
+    // });
+    // if (!student) {
+    //   throw new BadRequestError("Something went wrong!");
+    // }
+    // const tutor = await TutorModel.create({
+    //   user: user._id,
+    // });
+    // if (!tutor) {
+    //   throw new BadRequestError("Something went wrong!");
+    // }
+    // user.student = student._id;
+    // user.tutor = tutor._id;
+    // await user.save();
   } else {
     if (!user.accountStatus) {
       user.accountStatus = true;

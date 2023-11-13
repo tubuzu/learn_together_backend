@@ -1,18 +1,17 @@
 import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
 import {
-  ProofOfLevelRequestDocument,
   ProofOfLevelRequestModel,
 } from "../models/proofOfLevelRequest.model.js";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { RequestState } from "../utils/const.js";
-import { findAndUpdateTutor } from "../service/tutor.service.js";
 import { giveCurrentDateTime } from "../utils/upload-file.js";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { storage } from "../config/firebase.config.js";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { processFileMiddleware } from "../middlewares/upload.middleware.js";
+import { findAndUpdateUser } from "../service/user.service.js";
 
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
@@ -269,8 +268,8 @@ export const acceptProofOfLevelRequest = async (
     request: request._id,
   });
 
-  await findAndUpdateTutor(
-    { user: request.sender },
+  await findAndUpdateUser(
+    { _id: request.sender },
     {
       $push: {
         proofsOfLevel: proof._id,
