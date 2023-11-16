@@ -19,7 +19,8 @@ export async function createUserSessionHandler(req: Request, res: Response) {
 
   if (!user) {
     return res.status(401).json({
-      msg: "Invalid email or password",
+      success: false,
+      message: "Invalid email or password",
     });
   }
 
@@ -35,6 +36,7 @@ export async function createUserSessionHandler(req: Request, res: Response) {
   res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: { accessToken, refreshToken },
   });
 }
@@ -45,6 +47,7 @@ export async function getUserSessionsHandler(req: Request, res: Response) {
   const sessions = await findSessions({ user: userId, valid: true });
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: { sessions },
   });
 }
@@ -64,7 +67,8 @@ export async function createAdminSessionHandler(req: Request, res: Response) {
 
   if (!admin) {
     return res.status(401).json({
-      msg: "Invalid email or password",
+      success: false,
+      message: "Invalid email or password",
     });
   }
 
@@ -80,6 +84,7 @@ export async function createAdminSessionHandler(req: Request, res: Response) {
   res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: { accessToken, refreshToken },
   });
 }

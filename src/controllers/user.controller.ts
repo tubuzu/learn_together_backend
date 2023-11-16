@@ -41,7 +41,7 @@ import { processFileMiddleware } from "../middlewares/upload.middleware.js";
 //   const skip = (page - 1) * perPage;
 
 //   const results = await UserModel.find(keyword as Record<string, any>)
-//     .skip(skip)
+// .skip((page - 1) * perPage)
 //     .limit(perPage);
 
 //   return res.status(StatusCodes.OK).json({
@@ -65,6 +65,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
   if (!user) throw new NotFoundError("User not found!");
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       user,
     },
@@ -83,6 +84,7 @@ export const getUserById = async (req: Request, res: Response) => {
   if (!user) throw new NotFoundError("User not found!");
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       user,
     },
@@ -183,6 +185,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     }
 
     return res.status(StatusCodes.OK).json({
+      success: true,
       data: user,
     });
   } else return res.status(StatusCodes.OK);
@@ -196,6 +199,7 @@ export const getAllUsersProfile = async (req: Request, res: Response) => {
   const users = await UserModel.find({});
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       users: users,
     },

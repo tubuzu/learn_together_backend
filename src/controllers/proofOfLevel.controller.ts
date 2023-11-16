@@ -18,6 +18,7 @@ export const getAllUserProofOfLevel = async (req: Request, res: Response) => {
     .limit(perPage);
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       proofs,
     },
@@ -36,6 +37,7 @@ export const getProofOfLevelById = async (req: Request, res: Response) => {
   if (!proof) throw new NotFoundError("Proof of Level not found!");
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       proof,
     },
@@ -64,6 +66,7 @@ export const getAllProofOfLevelByUserId = async (
   }
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       proofs,
     },
@@ -97,6 +100,7 @@ export const deleteProofOfLevel = async (req: Request, res: Response) => {
   await proof.delete();
 
   return res.status(StatusCodes.CREATED).json({
-    msg: "Request rejected!",
+    success: true,
+    message: "Request rejected!",
   });
 };

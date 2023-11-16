@@ -20,6 +20,7 @@ export const searchSubject = async (req: Request, res: Response) => {
 
   const subjects = await SubjectModel.find(keyword as Record<string, any>);
   res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       subjects,
     },
@@ -33,13 +34,15 @@ export const getSubjectById = async (req: Request, res: Response) => {
   const subjectId = req.params.subjectId;
   if (!subjectId)
     res.status(StatusCodes.OK).json({
-      msg: "subjectId is missing!",
+      success: false,
+      message: "subjectId is missing!",
     });
   const subject = await SubjectModel.findOne({
     _id: subjectId,
   });
   if (!subject) throw new NotFoundError("Subject not found!");
   res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       subject,
     },
@@ -72,6 +75,7 @@ export const createSubject = async (req: Request, res: Response) => {
   }
 
   return res.status(StatusCodes.CREATED).json({
+    success: true,
     data: { subject: subject },
   });
 };
@@ -117,6 +121,7 @@ export const updateSubject = async (req: Request, res: Response) => {
     }
 
     return res.status(StatusCodes.OK).json({
+      success: true,
       data: { subject: subject },
     });
   } else return res.status(StatusCodes.OK);
@@ -136,6 +141,7 @@ export const deleteSubject = async (req: Request, res: Response) => {
   subject.delete();
 
   return res.status(StatusCodes.OK).json({
-    msg: "Subject deleted!",
+    success: true,
+    message: "Subject deleted!",
   });
 };

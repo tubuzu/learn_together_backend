@@ -1,8 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
-import {
-  ProofOfLevelRequestModel,
-} from "../models/proofOfLevelRequest.model.js";
+import { ProofOfLevelRequestModel } from "../models/proofOfLevelRequest.model.js";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { RequestState } from "../utils/const.js";
@@ -23,7 +21,8 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
 
   if (!subjectId)
     return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Subject is required!",
+      success: false,
+      message: "Subject is required!",
     });
 
   const proofs = await ProofOfLevelModel.find({
@@ -79,7 +78,10 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
 
           return url;
         } catch (error: any) {
-          return res.status(400).json({ msg: error.message });
+          return res.status(400).json({
+            success: false,
+            message: error.message,
+          });
         }
       })
     );
@@ -87,7 +89,8 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
 
   if (documents.length == 0)
     return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Documents required!",
+      success: false,
+      message: "Documents required!",
     });
 
   const request = await ProofOfLevelRequestModel.create({
@@ -98,6 +101,7 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
   });
 
   return res.status(StatusCodes.CREATED).json({
+    success: true,
     data: { request: request },
   });
 };
@@ -118,6 +122,7 @@ export const getUserProofOfLevelRequestById = async (
   if (!request) throw new NotFoundError("Request not found!");
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       proof: request,
     },
@@ -139,6 +144,7 @@ export const getProofOfLevelRequestById = async (
   if (!request) throw new NotFoundError("Request not found!");
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       proof: request,
     },
@@ -172,6 +178,7 @@ export const getAllUserProofOfLevelRequest = async (
     .limit(perPage);
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       requests,
     },
@@ -202,6 +209,7 @@ export const getAllProofOfLevelRequest = async (
     .limit(perPage);
 
   return res.status(StatusCodes.CREATED).json({
+    success: true,
     data: {
       requests,
     },
@@ -235,6 +243,7 @@ export const getAllProofOfLevelRequestByUserId = async (
     .limit(perPage);
 
   return res.status(StatusCodes.CREATED).json({
+    success: true,
     data: {
       requests,
     },
@@ -278,7 +287,8 @@ export const acceptProofOfLevelRequest = async (
   );
 
   return res.status(StatusCodes.CREATED).json({
-    msg: "Request accepted!",
+    success: true,
+    message: "Request accepted!",
     data: {
       proofOfLevel: proof,
     },
@@ -305,6 +315,7 @@ export const rejectProofOfLevelRequest = async (
   await request.save();
 
   return res.status(StatusCodes.CREATED).json({
-    msg: "Request rejected!",
+    success: true,
+    message: "Request rejected!",
   });
 };

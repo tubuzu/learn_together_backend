@@ -27,11 +27,12 @@ export const searchTutor = async (req: Request, res: Response) => {
   }
 
   const tutors = await UserModel.find(keyword as Record<string, any>)
-    .skip(page)
+    .skip((page - 1) * perPage)
     .limit(perPage)
     .exec();
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       tutors: tutors,
       count: tutors.length,

@@ -3,6 +3,7 @@ import { FilterQuery, QueryOptions, UpdateQuery } from "mongoose";
 import qs from "qs";
 import { UserDocument, UserModel } from "../models/user.model.js";
 import omit from "lodash/omit.js";
+import { CustomAPIError } from "../errors/custom-api.error.js";
 
 export async function validateUserPassword({
     email,
@@ -53,7 +54,7 @@ export async function getGoogleOAuthTokens({
     } catch (error: any) {
         console.error(error.response.data.error);
         // log.error(error, "Failed to fetch Google Oauth Tokens");
-        throw new Error(error.message);
+        throw new CustomAPIError(error.message);
     }
 }
 
@@ -95,7 +96,7 @@ export async function getGoogleUser({
         return res.data;
     } catch (error: any) {
         // log.error(error, "Error fetching Google user");
-        throw new Error(error.message);
+        throw new CustomAPIError(error.message);
     }
 }
 

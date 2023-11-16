@@ -10,7 +10,7 @@ import { subjectRoutes } from "./routes/subject.routes.js";
 import { userRoutes } from "./routes/user.routes.js";
 import { sessionRoutes } from "./routes/session.routes.js";
 import { studentRoutes } from "./routes/student.routes.js";
-import { roomRoutes } from "./routes/room.routes.js";
+import { classroomRoutes } from "./routes/classroom.routes.js";
 import { tutorRoutes } from "./routes/tutor.routes.js";
 import { proofOfLevelRoutes } from "./routes/proofOfLevel.routes.js";
 
@@ -69,7 +69,7 @@ app.use("/api/v1", studentRoutes);
 app.use("/api/v1", tutorRoutes);
 app.use("/api/v1", proofOfLevelRoutes);
 app.use("/api/v1", proofOfLevelRequestRoutes);
-app.use("/api/v1", roomRoutes);
+app.use("/api/v1", classroomRoutes);
 app.use("/api/v1", subjectRoutes);
 
 // Error Handling middlewares

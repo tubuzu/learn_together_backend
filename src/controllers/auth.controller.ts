@@ -88,7 +88,8 @@ export const registerUser = async (req: Request, res: Response) => {
   // await user.save();
 
   return res.status(StatusCodes.CREATED).json({
-    msg: "User has been registered successfully",
+    success: true,
+    message: "User has been registered successfully",
   });
 };
 
@@ -110,7 +111,8 @@ export const loginUser = async (req: Request, res: Response) => {
   // check if account's email is verified
   if (!user.accountStatus) {
     return res.status(StatusCodes.FORBIDDEN).json({
-      msg: "Account not verified",
+      success: false,
+      message: "Account not verified",
       data: {
         email: user.email,
         accountStatus: user.accountStatus,
@@ -128,6 +130,7 @@ export const loginUser = async (req: Request, res: Response) => {
   res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -154,7 +157,8 @@ export const googleOauthHandler = async (req: Request, res: Response) => {
 
     if (!googleUser.verified_email) {
       return res.status(403).json({
-        msg: "Google account is not verified",
+        success: false,
+        message: "Google account is not verified",
       });
     }
   } catch (error) {
@@ -213,6 +217,7 @@ export const googleOauthHandler = async (req: Request, res: Response) => {
 
   user.accountVerificationToken = undefined;
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -238,7 +243,10 @@ export const logoutUser = async (req: Request, res: Response) => {
     throw new BadRequestError(err.message);
   }
 
-  return res.status(StatusCodes.OK).json({ msg: "Sign out successfully!" });
+  return res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Sign out successfully!",
+  });
 };
 
 /**
@@ -259,9 +267,10 @@ export const verifyAccount = async (req: Request, res: Response) => {
   );
 
   if (!decoded) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Invalid or expired token" });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
   }
 
   //find user with token and email
@@ -270,9 +279,10 @@ export const verifyAccount = async (req: Request, res: Response) => {
     accountVerificationToken: verificationToken,
   });
   if (!user) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "User with this token was not found" });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      message: "User with this token was not found",
+    });
   }
 
   try {
@@ -280,14 +290,16 @@ export const verifyAccount = async (req: Request, res: Response) => {
     user.accountStatus = true;
     user.accountVerificationToken = "";
     await user.save();
-    return res
-      .status(StatusCodes.OK)
-      .json({ msg: "User successfully verified" });
+    return res.status(StatusCodes.OK).json({
+      success: false,
+      message: "User successfully verified",
+    });
   } catch (err) {
     console.error("Error updating user status:", err);
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "Error occurred while updating user status" });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      message: "Error occurred while updating user status",
+    });
   }
 };
 
@@ -337,7 +349,8 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
   await sendEmail(to, from, subject, body);
 
   return res.status(StatusCodes.OK).json({
-    msg: "Token reset and sent successfully",
+    success: true,
+    message: "Token reset and sent successfully",
   });
 };
 
@@ -377,7 +390,8 @@ export const refreshUser = async (req: Request, res: Response) => {
   res.cookie("accessToken", accessToken, accessTokenCookieOptions);
 
   return res.status(StatusCodes.OK).json({
-    msg: "Access token refresh successfully",
+    success: true,
+    message: "Access token refresh successfully",
     data: {
       accessToken: accessToken,
     },
@@ -416,15 +430,17 @@ export const forgotPassword = async (req: Request, res: Response) => {
   user.save(async (err: any, result: any) => {
     if (err) {
       return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "Error occurred while saving the token in database",
+        success: false,
+        message: "Error occurred while saving the token in database",
       });
     } else {
       //if no error
       //send email
       await sendEmail(to, from, subject, body);
-      return res
-        .status(StatusCodes.OK)
-        .json({ msg: `Token has been sent to ${email}` });
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        message: `Token has been sent to ${email}`,
+      });
     }
   });
 };
@@ -451,9 +467,10 @@ export const resetPassword = async (req: Request, res: Response) => {
   //find user with token
   const user = await UserModel.findOne({ passwordResetToken: resetToken });
   if (!user) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "User with this token was not found" });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      message: "User with this token was not found",
+    });
   }
 
   //update password
@@ -470,14 +487,16 @@ export const resetPassword = async (req: Request, res: Response) => {
 
   user.save(async (err: any, result: any) => {
     if (err) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: "Error occurred while resetting password" });
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Error occurred while resetting password",
+      });
     } else {
       await sendEmail(to, from, subject, body);
-      return res
-        .status(StatusCodes.OK)
-        .json({ msg: "Password successfully changed" });
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        message: "Password successfully changed",
+      });
     }
   });
 };
@@ -499,9 +518,10 @@ export const changeUserPassword = async (req: Request, res: Response) => {
   //find user with token
   const user = await UserModel.findById(res.locals.userData.user);
   if (!user) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: "User with this token was not found" });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      message: "User with this token was not found",
+    });
   }
 
   //update password
@@ -509,13 +529,15 @@ export const changeUserPassword = async (req: Request, res: Response) => {
   user.passwordResetToken = "";
   user.save((err: any, result: any) => {
     if (err) {
-      return res
-        .status(StatusCodes.BAD_REQUEST)
-        .json({ msg: "Error occurred while resetting password" });
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Error occurred while resetting password",
+      });
     } else {
-      return res
-        .status(StatusCodes.OK)
-        .json({ msg: "Password successfully changed" });
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        message: "Password successfully changed",
+      });
     }
   });
 };
@@ -545,6 +567,7 @@ export const loginAdmin = async (req: Request, res: Response) => {
   res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
   return res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -583,7 +606,8 @@ export const refreshAdmin = async (req: Request, res: Response) => {
   const accessToken = user.createAccessToken(session._id);
   res.cookie("accessToken", accessToken, accessTokenCookieOptions);
 
-  return res
-    .status(StatusCodes.OK)
-    .json({ msg: "Access token refresh successfully" });
+  return res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Access token refresh successfully",
+  });
 };

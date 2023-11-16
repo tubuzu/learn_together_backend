@@ -32,11 +32,12 @@ export const searchStudent = async (req: Request, res: Response) => {
       };
 
   const students = await UserModel.find(keyword as Record<string, any>)
-    .skip(page)
+    .skip((page - 1) * perPage)
     .limit(perPage)
     .exec();
 
   res.status(StatusCodes.OK).json({
+    success: true,
     data: {
       students,
       count: students.length,
@@ -68,7 +69,10 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
       new: true,
     }
   );
-  return res.status(StatusCodes.OK).json({ data: { student } });
+  return res.status(StatusCodes.OK).json({
+    success: true,
+    data: { student },
+  });
 };
 
 // export const searchStudent = async (req: Request, res: Response) => {
