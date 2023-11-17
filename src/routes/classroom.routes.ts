@@ -1,18 +1,23 @@
 import express from "express";
 import {
-  AcceptJoinRequest,
-  GetAllJoinRequest,
-  RejectJoinRequest,
+  acceptJoinRequest,
+  getAllJoinRequestByClassroomId,
+  kickUser,
+  leaveClassroom,
+  rejectJoinRequest,
   createClassroom,
   deleteClassroom,
   endClassroom,
   getClassroomById,
-  getMyClassRoom,
+  getUserCurrentClassrooms,
   joinAPrivateClassRoom,
   joinAPublicClassRoom,
   searchClassroom,
   searchClassroomOnMap,
   updateClassroom,
+  getUserClassroomHistory,
+  updateClassroomTutor,
+  updateClassroomOwner,
 } from "../controllers/classroom.controller.js";
 import {
   deserializeAdmin,
@@ -41,9 +46,14 @@ classroomRoutes.get(
   getClassroomById
 );
 classroomRoutes.get(
-  "/user/classroom",
+  "/user/classroom/current",
   [deserializeUser, requireUser],
-  getMyClassRoom
+  getUserCurrentClassrooms
+);
+classroomRoutes.get(
+  "/user/classroom/history",
+  [deserializeUser, requireUser],
+  getUserClassroomHistory
 );
 
 //create, update, end classroom
@@ -63,7 +73,7 @@ classroomRoutes.patch(
   endClassroom
 );
 
-//join, leave, kick
+//join (public/private), leave, kick
 classroomRoutes.get(
   "/classroom/join/public/:classroomId",
   [deserializeUser, requireUser],
@@ -74,22 +84,44 @@ classroomRoutes.post(
   [deserializeUser, requireUser],
   joinAPrivateClassRoom
 );
+classroomRoutes.patch(
+  "/classroom/:classroomId/leave",
+  [deserializeUser, requireUser],
+  leaveClassroom
+);
+classroomRoutes.patch(
+  "/classroom/:classroomId/kick/:userId",
+  [deserializeUser, requireUser],
+  kickUser
+);
 
 //get all requests, accept, reject
 classroomRoutes.get(
-  "/classroom/request/all",
+  "/classroom/:classroomId/request/all",
   [deserializeUser, requireUser],
-  GetAllJoinRequest
+  getAllJoinRequestByClassroomId
 );
 classroomRoutes.patch(
   "/classroom/accept/request/:requestId",
   [deserializeUser, requireUser],
-  AcceptJoinRequest
+  acceptJoinRequest
 );
 classroomRoutes.patch(
   "/classroom/reject/request/:requestId",
   [deserializeUser, requireUser],
-  RejectJoinRequest
+  rejectJoinRequest
+);
+
+//update owner, update tutor
+classroomRoutes.patch(
+  "/classroom/:classroomId/update-tutor/:userId",
+  [deserializeUser, requireUser],
+  updateClassroomTutor
+);
+classroomRoutes.patch(
+  "/classroom/:classroomId/update-owner/:userId",
+  [deserializeUser, requireUser],
+  updateClassroomOwner
 );
 
 //admin

@@ -17,7 +17,8 @@ const classroomSchema = new mongoose.Schema<ClassroomDocument>(
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
     tutor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    currentParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    historyParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     maxParticipants: {
       type: Number,
       required: true,
@@ -70,7 +71,7 @@ export interface ClassroomDocument extends Document {
   owner: string;
 
   tutor?: string;
-  participants: string[];
+  currentParticipants: string[];
   maxParticipants: number;
   state: string;
   available: boolean;
