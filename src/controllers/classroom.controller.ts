@@ -7,6 +7,7 @@ import {
   findAndUpdateClassroom,
   findOneClassroom,
   terminateClassroom,
+  updateClassroomState,
 } from "../service/classroom.service.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import {
@@ -19,32 +20,16 @@ import { JoinRequestModel } from "../models/joinRequest.model.js";
 import { UserModel } from "../models/user.model.js";
 import { CustomAPIError } from "../errors/custom-api.error.js";
 import cron from "node-cron";
-
-// Define a function to update the state of classrooms
-async function updateClassroomState() {
-  const curTime = new Date();
-  // Find all classrooms that have startTime less than or equal to current time
-  const classrooms = await ClassroomModel.find({
-    $or: [
-      { endTime: { $lte: curTime }, state: { $eq: ClassroomState.LEARNING } },
-      { startTime: { $lte: curTime }, state: { $eq: ClassroomState.WAITING } },
-    ],
-    terminated: false,
-  });
-  // Loop through the classrooms and update their state to LEARNING
-  for (let classroom of classrooms) {
-    if (classroom.endTime <= curTime) classroom.state = ClassroomState.FINISHED;
-    else if (classroom.startTime <= curTime)
-      classroom.state = ClassroomState.LEARNING;
-    await classroom.save();
-  }
-}
+import { errorResponse, successResponse } from "../utils/response.util.js";
+import { ForbiddenError } from "src/errors/forbidden.error.js";
+import { ConflictError } from "src/errors/conflict.error.js";
+import { InternalServerError } from "src/errors/internal-server-error.error.js";
 
 // Schedule a trigger to run every 5 seconds
-cron.schedule("*/5 * * * * *", () => {
-  // Call the update function
-  updateClassroomState();
-});
+// cron.schedule("*/5 * * * * *", () => {
+//   // Call the update function
+//   updateClassroomState();
+// });
 
 //@description     Search classroom
 //@route           GET /api/v1/classroom/search?subjectName=
@@ -61,24 +46,24 @@ export const searchClassroom = async (req: Request, res: Response) => {
   const classrooms = await ClassroomModel.find(keyword)
     .skip((page - 1) * perPage)
     .limit(perPage);
-  res.status(StatusCodes.OK).json({
-    success: true,
-    data: { classrooms },
-  });
+  return res
+    .status(StatusCodes.OK)
+    .json(successResponse({ data: { classrooms } }));
 };
 
 //@description     Search classroom
 //@route           GET /api/v1/classroom/map/search?subjectName=
 //@access          Public
 export const searchClassroomOnMap = async (req: Request, res: Response) => {
-  const { northLatBound, northLongBound, southLatBound, southLongBound } =
-    req.query;
+  const {
+    northLatBound,
+    northLongBound,
+    southLatBound,
+    southLongBound,
+    search,
+  } = req.query;
   if (!northLatBound || !northLongBound || !southLatBound || !southLongBound) {
-    res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      message: "LatLngBounds required!",
-    });
-    return;
+    throw new BadRequestError("LatLngBounds required!");
   }
 
   const keyword: any = {
@@ -101,14 +86,12 @@ export const searchClassroomOnMap = async (req: Request, res: Response) => {
     isDeleted: false,
   };
 
-  if (req.query.search)
-    keyword.subjectName = { $regex: req.query.search, $options: "i" };
+  if (search) keyword.subjectName = { $regex: search, $options: "i" };
 
   const classrooms = await ClassroomModel.find(keyword as Record<string, any>);
-  res.status(StatusCodes.OK).json({
-    success: true,
-    data: { classrooms },
-  });
+  return res
+    .status(StatusCodes.OK)
+    .json(successResponse({ data: { classrooms } }));
 };
 
 //@description     Get classroom by id
@@ -120,10 +103,9 @@ export const getClassroomById = async (req: Request, res: Response) => {
     isDeleted: false,
   });
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    data: { classrooms: classroom },
-  });
+  return res
+    .status(StatusCodes.OK)
+    .json(successResponse({ data: { classrooms: classroom } }));
 };
 
 //@description     Get my classroom
@@ -143,17 +125,10 @@ export const getUserCurrentClassrooms = async (req: Request, res: Response) => {
   }
 
   const classrooms = await ClassroomModel.find(keyword);
-  if (!classrooms || classrooms.length == 0) {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: "You are not in any classroom!",
-    });
-    return;
-  }
-  res.status(StatusCodes.OK).json({
-    success: true,
-    data: { classroom: classrooms },
-  });
+
+  return res
+    .status(StatusCodes.OK)
+    .json(successResponse({ data: { classrooms } }));
 };
 
 /**
@@ -167,11 +142,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     isDeleted: false,
   });
   if (existClassrooms && existClassrooms.length >= 3) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "You can only join a maximum of 3 classrooms!",
-    });
-    return;
+    throw new ForbiddenError("You can only join a maximum of 3 classrooms!");
   }
 
   let {
@@ -210,11 +181,7 @@ export const createClassroom = async (req: Request, res: Response) => {
   }
   if (isPublic) secretKey = "";
   else if (!secretKey) {
-    res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      message: "secretKey required for private classroom!",
-    });
-    return;
+    throw new BadRequestError("secretKey required for private classroom!");
   } else if (ownerApprovalRequired) {
     ownerApprovalRequired = false;
   }
@@ -222,12 +189,7 @@ export const createClassroom = async (req: Request, res: Response) => {
   const startDateTime = Date.parse(startTime);
   const endDateTime = Date.parse(endTime);
   if (startDateTime >= endDateTime || startDateTime < Date.now()) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message:
-        "endTime has to be greater than startTime and startTime has to be greater than now.",
-    });
-    return;
+    throw new BadRequestError("Invalid start and end time!");
   }
 
   const location = {
@@ -261,10 +223,9 @@ export const createClassroom = async (req: Request, res: Response) => {
 
   if (!classroom) throw new BadRequestError("Something went wrong!");
 
-  return res.status(StatusCodes.CREATED).json({
-    success: true,
-    data: { classroom },
-  });
+  return res
+    .status(StatusCodes.CREATED)
+    .json(successResponse({ data: { classroom } }));
 };
 
 /**
@@ -282,19 +243,11 @@ export const updateClassroom = async (req: Request, res: Response) => {
   if (!classroom) throw new NotFoundError("Classroom not found!");
 
   if (classroom.owner != res.locals.userData.user) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "Only owner can update study classroom!",
-    });
-    return;
+    throw new BadRequestError("Only owner can update study classroom!");
   }
 
   if (classroom.state == ClassroomState.FINISHED) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "Can not update finished classroom!",
-    });
-    return;
+    throw new BadRequestError("Can not update finished classroom!");
   }
 
   let { classroomName, subject, longitude, latitude, address, description } =
@@ -335,10 +288,7 @@ export const updateClassroom = async (req: Request, res: Response) => {
     throw new BadRequestError("Something went wrong!");
   }
 
-  return res.status(StatusCodes.OK).json({
-    success: true,
-    data: classroom,
-  });
+  return res.status(StatusCodes.OK).json(successResponse({ data: classroom }));
 };
 
 //@description     Join a public classroom
@@ -348,6 +298,8 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
   const { classroomId } = req.params;
   const { role } = req.query;
   const userId = res.locals.userData.user;
+
+  //find classroom
   let keyword: any = {
     _id: classroomId,
     available: true,
@@ -359,67 +311,47 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     .populate("subject")
     .populate("proofsOfLevel");
   if (!classroom) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message:
-        "Classroom is not currently available or you have joined this classroom",
-    });
-    return;
+    throw new BadRequestError(
+      "Classroom is not currently available or you have joined this classroom"
+    );
   }
 
   // check if classroom is public
   if (!classroom.isPublic) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "This is not a public classroom!",
-    });
-    return;
+    throw new ForbiddenError("This is not a public classroom!");
   }
 
   // check if classroom full
   if (classroom.currentParticipants.length >= classroom.maxParticipants) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "This classroom is full!",
-    });
-    return;
+    throw new ConflictError("This classroom is full!");
   }
 
+  // check for valid role
   if (
     !role ||
     (role != ClassroomMemberRole.STUDENT && role != ClassroomMemberRole.TUTOR)
   ) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "Invalid role!",
-    });
-    return;
+    throw new BadRequestError("Invalid role!");
   }
+
+  // check if role is tutor and user has proof of level to be a tutor in this class
   if (role == ClassroomMemberRole.TUTOR) {
-    // check if role is tutor and user has proof of level to be this classroom tutor
     const user = await UserModel.findById(userId).populate("proofsOfLevel");
     if (!user) {
-      res.status(StatusCodes.OK).json({
-        success: false,
-        message: "Something wrong happen",
-      });
-      return;
+      throw new InternalServerError("Something wrong happen!");
     }
     if (
       !user.proofsOfLevel.some(
         (proof: any) => proof.subject == classroom.subject
       )
     ) {
-      res.status(StatusCodes.OK).json({
-        success: false,
-        message:
-          "You don't have any proof of level for this classroom subject!",
-      });
-      return;
+      throw new ForbiddenError(
+        "You don't have any proof of level to be a tutor in this classroom!"
+      );
     }
   }
 
-  // send
+  // send join request if ownerApprovalRequired == true
   if (classroom.ownerApprovalRequired) {
     const joinRequest = await JoinRequestModel.create({
       user: userId,
@@ -430,13 +362,12 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
       { _id: classroom._id },
       { $addToSet: { joinRequests: joinRequest._id } }
     );
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: "Join request sent successfully",
-    });
-    return;
+    return res
+      .status(StatusCodes.OK)
+      .json(successResponse({ message: "Join request sent successfully" }));
   }
 
+  // else join in class
   const updateQuery: any = {};
 
   if (role === ClassroomMemberRole.TUTOR) {
@@ -456,11 +387,12 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     { new: true }
   );
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    message: "Join classroom successfully!",
-    data: { updatedClassroom },
-  });
+  return res.status(StatusCodes.OK).json(
+    successResponse({
+      message: "Join classroom successfully!",
+      data: { updatedClassroom },
+    })
+  );
 };
 
 //@description     Join a private classroom
@@ -484,39 +416,24 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     .populate("subject")
     .populate("proofsOfLevel");
   if (!classroom) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message:
-        "Classroom is not currently available or you have joined this classroom",
-    });
-    return;
+    throw new ForbiddenError(
+      "Classroom is not currently available or you have joined this classroom"
+    );
   }
 
   // check if classroom is public
   if (classroom.isPublic) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "This is not a private classroom!",
-    });
-    return;
+    throw new ForbiddenError("This is not a private classroom!");
   }
 
   // check if classroom full
   if (classroom.currentParticipants.length >= classroom.maxParticipants) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "This classroom is full!",
-    });
-    return;
+    throw new ConflictError("This classroom is full!");
   }
 
   // check secretKey match
   if (classroom.secretKey != secretKey) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "secretKey not match!",
-    });
-    return;
+    throw new BadRequestError("secretKey not match!");
   }
 
   // check if invalid rold
@@ -524,37 +441,27 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     !role ||
     (role != ClassroomMemberRole.STUDENT && role != ClassroomMemberRole.TUTOR)
   ) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "Invalid role!",
-    });
-    return;
+    throw new BadRequestError("Invalid role!");
   }
 
+  // check if role is tutor and user has proof of level to be this classroom tutor
   if (role == ClassroomMemberRole.TUTOR) {
-    // check if role is tutor and user has proof of level to be this classroom tutor
     const user = await UserModel.findById(userId).populate("proofsOfLevel");
     if (!user) {
-      res.status(StatusCodes.OK).json({
-        success: false,
-        message: "Something wrong happen",
-      });
-      return;
+      throw new InternalServerError("Something wrong happen");
     }
     if (
       !user.proofsOfLevel.some(
         (proof: any) => proof.subject == classroom.subject
       )
     ) {
-      res.status(StatusCodes.OK).json({
-        success: false,
-        message:
-          "You don't have any proof of level for this classroom subject!",
-      });
-      return;
+      throw new ForbiddenError(
+        "You don't have any proof of level for this classroom subject!"
+      );
     }
   }
 
+  // else join in class
   const updateQuery: any = {};
 
   if (role === ClassroomMemberRole.TUTOR) {
@@ -574,11 +481,12 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     { new: true }
   );
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    message: "Join classroom successfully!",
-    data: { updatedClassroom },
-  });
+  return res.status(StatusCodes.OK).json(
+    successResponse({
+      message: "Join classroom successfully!",
+      data: { updatedClassroom },
+    })
+  );
 };
 
 /**
@@ -596,11 +504,7 @@ export const endClassroom = async (req: Request, res: Response) => {
   if (!classroom) throw new NotFoundError("Classroom not found!");
 
   if (classroom.owner != res.locals.userData.user) {
-    res.status(StatusCodes.OK).json({
-      success: false,
-      message: "Only owner can end study classroom!",
-    });
-    return;
+    throw new ForbiddenError("Only owner can end study classroom!");
   }
 
   classroom = await findAndUpdateClassroom(
@@ -621,10 +525,7 @@ export const endClassroom = async (req: Request, res: Response) => {
     throw new BadRequestError("Something went wrong!");
   }
 
-  return res.status(StatusCodes.OK).json({
-    success: true,
-    data: classroom,
-  });
+  return res.status(StatusCodes.OK).json(successResponse({ data: classroom }));
 };
 
 /**
@@ -632,23 +533,18 @@ export const endClassroom = async (req: Request, res: Response) => {
  * @route Delete /api/v1/admin/classroom/delete?classroomId=
  */
 export const deleteClassroom = async (req: Request, res: Response) => {
-  try {
-    let classroom = await ClassroomModel.findOne({
-      _id: req.params.classroomId, // Lọc theo _id
-      isDeleted: false,
-    });
+  let classroom = await ClassroomModel.findOne({
+    _id: req.params.classroomId, // Lọc theo _id
+    isDeleted: false,
+  });
 
-    if (!classroom) throw new NotFoundError("Classroom not found!");
+  if (!classroom) throw new NotFoundError("Classroom not found!");
 
-    classroom.delete();
+  await classroom.delete();
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
-      message: "Classroom deleted!",
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+  return res
+    .status(StatusCodes.OK)
+    .json(successResponse({ message: "Classroom deleted!" }));
 };
 
 /**
@@ -656,61 +552,58 @@ export const deleteClassroom = async (req: Request, res: Response) => {
  * @route PATCH /api/v1/classroom/accept/request/:requestId
  */
 export const acceptJoinRequest = async (req: Request, res: Response) => {
-  try {
-    const userId = res.locals.userData.user;
-    let request = await JoinRequestModel.findById(req.params.requestId);
-    if (!request) throw new NotFoundError("Request not found!");
+  const userId = res.locals.userData.user;
+  let request = await JoinRequestModel.findById(req.params.requestId);
+  if (!request) throw new NotFoundError("Request not found!");
 
-    // find classroom
-    let classroom = await ClassroomModel.findOne({
-      _id: request.classroom, // Lọc theo _id
-      available: true,
-      // terminated: false,
-      isDeleted: false,
-    });
-    if (!classroom) throw new NotFoundError("Classroom not found!");
+  // find classroom
+  let classroom = await ClassroomModel.findOne({
+    _id: request.classroom, // Lọc theo _id
+    available: true,
+    // terminated: false,
+    isDeleted: false,
+  });
+  if (!classroom) throw new NotFoundError("Classroom not found!");
 
-    // check if user is not owner
-    if (classroom.owner != userId)
-      throw new UnauthenticatedError(
-        "Only classroom owner can handle join request!"
-      );
-
-    // update classroom
-    const updateQuery: any = {};
-
-    if (request.role == ClassroomMemberRole.TUTOR) {
-      updateQuery.$set = { tutor: request.user };
-    }
-
-    updateQuery.$addToSet = { currentParticipants: request.user };
-    updateQuery.$addToSet = { historyParticipants: request.user };
-    updateQuery.$pull = { joinRequest: request._id };
-    if (classroom.currentParticipants.length == classroom.maxParticipants)
-      updateQuery.$set = { available: false };
-
-    const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
-      classroom._id,
-      updateQuery,
-      { new: true }
+  // check if user is not owner
+  if (classroom.owner != userId)
+    throw new UnauthenticatedError(
+      "Only classroom owner can handle join request!"
     );
 
-    // update request
-    request.reviewer = userId;
-    request.state = RequestState.ACCEPTED;
-    await request.save();
+  // update classroom
+  const updateQuery: any = {};
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  if (request.role == ClassroomMemberRole.TUTOR) {
+    updateQuery.$set = { tutor: request.user };
+  }
+
+  updateQuery.$addToSet = { currentParticipants: request.user };
+  updateQuery.$addToSet = { historyParticipants: request.user };
+  updateQuery.$pull = { joinRequest: request._id };
+  if (classroom.currentParticipants.length == classroom.maxParticipants)
+    updateQuery.$set = { available: false };
+
+  const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
+    classroom._id,
+    updateQuery,
+    { new: true }
+  );
+
+  // update request
+  request.reviewer = userId;
+  request.state = RequestState.ACCEPTED;
+  await request.save();
+
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       message: "Participant accepted!",
       data: {
         classroom: updatedClassroom,
         request,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
 
 /**
@@ -718,45 +611,42 @@ export const acceptJoinRequest = async (req: Request, res: Response) => {
  * @route PATCH /api/v1/classroom/reject/request/:requestId
  */
 export const rejectJoinRequest = async (req: Request, res: Response) => {
-  try {
-    const userId = res.locals.userData.user;
-    let request = await JoinRequestModel.findById(req.params.requestId);
-    if (!request) throw new NotFoundError("Request not found!");
+  const userId = res.locals.userData.user;
+  let request = await JoinRequestModel.findById(req.params.requestId);
+  if (!request) throw new NotFoundError("Request not found!");
 
-    let classroom = await ClassroomModel.findOne({
-      _id: request.classroom, // Lọc theo _id
-      isDeleted: false,
-    }).lean();
-    if (!classroom) throw new NotFoundError("Classroom not found!");
+  let classroom = await ClassroomModel.findOne({
+    _id: request.classroom, // Lọc theo _id
+    isDeleted: false,
+  }).lean();
+  if (!classroom) throw new NotFoundError("Classroom not found!");
 
-    if (classroom.owner != userId)
-      throw new UnauthenticatedError(
-        "Only classroom owner can handle join request!"
-      );
-
-    const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
-      classroom._id,
-      {
-        $pull: { joinRequests: request._id },
-      },
-      { new: true }
+  if (classroom.owner != userId)
+    throw new UnauthenticatedError(
+      "Only classroom owner can handle join request!"
     );
 
-    request.reviewer = userId;
-    request.state = RequestState.REJECTED;
-    await request.save();
+  const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
+    classroom._id,
+    {
+      $pull: { joinRequests: request._id },
+    },
+    { new: true }
+  );
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  request.reviewer = userId;
+  request.state = RequestState.REJECTED;
+  await request.save();
+
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       message: "Participant rejected!",
       data: {
         classroom: updatedClassroom,
         request,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
 
 /**
@@ -767,30 +657,27 @@ export const getAllJoinRequestByClassroomId = async (
   req: Request,
   res: Response
 ) => {
-  try {
-    const userId = res.locals.userData.user;
+  const userId = res.locals.userData.user;
 
-    let classroom = await findOneClassroom({
-      _id: req.params.classroomId,
-      owner: userId,
-      terminated: false,
-    });
-    if (!classroom)
-      throw new BadRequestError(
-        "Classroom not valid or you are not the owner of this classroom!"
-      );
+  let classroom = await findOneClassroom({
+    _id: req.params.classroomId,
+    owner: userId,
+    terminated: false,
+  });
+  if (!classroom)
+    throw new BadRequestError(
+      "Classroom not valid or you are not the owner of this classroom!"
+    );
 
-    await classroom.populate("joinRequests").execPopulate();
+  await classroom.populate("joinRequests").execPopulate();
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       data: {
         requests: classroom.joinRequests,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
 
 /**
@@ -798,45 +685,39 @@ export const getAllJoinRequestByClassroomId = async (
  * @route PATCH /api/v1/classroom/:classroomId/leave
  */
 export const leaveClassroom = async (req: Request, res: Response) => {
-  try {
-    const userId = res.locals.userData.user;
-    const { classroomId } = req.params;
+  const userId = res.locals.userData.user;
+  const { classroomId } = req.params;
 
-    const classroom = await findOneClassroom({
+  const classroom = await findOneClassroom({
+    _id: classroomId,
+    terminated: false,
+  });
+  if (!classroom) throw new NotFoundError("Classroom not found!");
+
+  //terminate classroom if you are the last one / if you are owner
+  if (classroom.currentParticipants.length == 1 || classroom.owner == userId) {
+    await terminateClassroom({
       _id: classroomId,
       terminated: false,
     });
-    if (!classroom) throw new NotFoundError("Classroom not found!");
-
-    //terminate classroom if you are the last one / if you are owner
-    if (
-      classroom.currentParticipants.length == 1 ||
-      classroom.owner == userId
-    ) {
-      await terminateClassroom({
+  } else {
+    await findAndUpdateClassroom(
+      {
         _id: classroomId,
         terminated: false,
-      });
-    } else {
-      await findAndUpdateClassroom(
-        {
-          _id: classroomId,
-          terminated: false,
-        },
-        { $pull: { currentParticipants: userId } },
-        { new: true, upsert: false }
-      );
-    }
+      },
+      { $pull: { currentParticipants: userId } },
+      { new: true, upsert: false }
+    );
+  }
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       data: {
         classroom,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
 
 /**
@@ -844,42 +725,39 @@ export const leaveClassroom = async (req: Request, res: Response) => {
  * @route PATCH /api/v1/classroom/:classroomId/kick/:userId
  */
 export const kickUser = async (req: Request, res: Response) => {
-  try {
-    const ownerId = res.locals.userData.user;
-    const { classroomId, userId } = req.params;
+  const ownerId = res.locals.userData.user;
+  const { classroomId, userId } = req.params;
 
-    if (ownerId == userId) throw new BadRequestError("Can't kick yourself!");
+  if (ownerId == userId) throw new BadRequestError("Can't kick yourself!");
 
-    const classroom = await ClassroomModel.findOne({
-      _id: classroomId,
-      owner: ownerId,
-      terminated: false,
-    }).lean();
+  const classroom = await ClassroomModel.findOne({
+    _id: classroomId,
+    owner: ownerId,
+    terminated: false,
+  }).lean();
 
-    if (!classroom)
-      throw new BadRequestError(
-        "Classroom not valid or you are not the owner of this classroom!"
-      );
-
-    const updateQuery: any = { $pull: { currentParticipants: userId } };
-    if (classroom.tutor == userId) updateQuery.$set = { tutor: "" };
-    const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
-      classroom._id,
-      updateQuery,
-      {
-        new: true,
-      }
+  if (!classroom)
+    throw new BadRequestError(
+      "Classroom not valid or you are not the owner of this classroom!"
     );
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  const updateQuery: any = { $pull: { currentParticipants: userId } };
+  if (classroom.tutor == userId) updateQuery.$set = { tutor: "" };
+  const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
+    classroom._id,
+    updateQuery,
+    {
+      new: true,
+    }
+  );
+
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       data: {
         classroom: updatedClassroom,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
 
 /**
@@ -887,38 +765,35 @@ export const kickUser = async (req: Request, res: Response) => {
  * @route PATCH /api/v1/classroom/:classroomId/update-tutor/:userId
  */
 export const updateClassroomTutor = async (req: Request, res: Response) => {
-  try {
-    const ownerId = res.locals.userData.user;
-    const { classroomId, userId } = req.params;
+  const ownerId = res.locals.userData.user;
+  const { classroomId, userId } = req.params;
 
-    const classroom = await ClassroomModel.findOne({
-      _id: classroomId,
-      owner: ownerId,
-      terminated: false,
-    }).lean();
+  const classroom = await ClassroomModel.findOne({
+    _id: classroomId,
+    owner: ownerId,
+    terminated: false,
+  }).lean();
 
-    if (!classroom)
-      throw new BadRequestError(
-        "Classroom not valid or you are not the owner of this classroom!"
-      );
-
-    const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
-      classroom._id,
-      { $set: { tutor: userId } },
-      {
-        new: true,
-      }
+  if (!classroom)
+    throw new BadRequestError(
+      "Classroom not valid or you are not the owner of this classroom!"
     );
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
+    classroom._id,
+    { $set: { tutor: userId } },
+    {
+      new: true,
+    }
+  );
+
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       data: {
         classroom: updatedClassroom,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
 
 /**
@@ -926,38 +801,35 @@ export const updateClassroomTutor = async (req: Request, res: Response) => {
  * @route PATCH /api/v1/classroom/:classroomId/update-owner/:userId
  */
 export const updateClassroomOwner = async (req: Request, res: Response) => {
-  try {
-    const oldOwnerId = res.locals.userData.user;
-    const { classroomId, userId: newOwnerId } = req.params;
+  const oldOwnerId = res.locals.userData.user;
+  const { classroomId, userId: newOwnerId } = req.params;
 
-    const classroom = await ClassroomModel.findOne({
-      _id: classroomId,
-      owner: oldOwnerId,
-      terminated: false,
-    }).lean();
+  const classroom = await ClassroomModel.findOne({
+    _id: classroomId,
+    owner: oldOwnerId,
+    terminated: false,
+  }).lean();
 
-    if (!classroom)
-      throw new BadRequestError(
-        "Classroom not valid or you are not the owner of this classroom!"
-      );
-
-    const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
-      classroomId,
-      { $set: { owner: newOwnerId } },
-      {
-        new: true,
-      }
+  if (!classroom)
+    throw new BadRequestError(
+      "Classroom not valid or you are not the owner of this classroom!"
     );
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
+    classroomId,
+    { $set: { owner: newOwnerId } },
+    {
+      new: true,
+    }
+  );
+
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       data: {
         classroom: updatedClassroom,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
 
 /**
@@ -965,28 +837,18 @@ export const updateClassroomOwner = async (req: Request, res: Response) => {
  * @route GET /api/v1/user/classroom/history
  */
 export const getUserClassroomHistory = async (req: Request, res: Response) => {
-  try {
-    const userId = res.locals.userData.user;
+  const userId = res.locals.userData.user;
 
-    const classrooms = await ClassroomModel.find({
-      historyParticipants: { $in: userId },
-      terminated: true,
-    }).lean();
+  const classrooms = await ClassroomModel.find({
+    historyParticipants: { $in: userId },
+    terminated: true,
+  }).lean();
 
-    if (!classrooms || classrooms.length == 0) {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        message: "Empty history!",
-      });
-    }
-
-    return res.status(StatusCodes.OK).json({
-      success: true,
+  return res.status(StatusCodes.OK).json(
+    successResponse({
       data: {
         classrooms,
       },
-    });
-  } catch (err: any) {
-    throw new CustomAPIError(err.message);
-  }
+    })
+  );
 };
