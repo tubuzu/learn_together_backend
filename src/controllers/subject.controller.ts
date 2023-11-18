@@ -111,7 +111,6 @@ export const updateSubject = async (req: Request, res: Response) => {
       },
       filteredUpdateObj,
       {
-        upsert: true,
         new: true,
       }
     );

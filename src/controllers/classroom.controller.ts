@@ -2,12 +2,17 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { UnauthenticatedError } from "../errors/unauthenticated.error.js";
-import { ClassroomModel } from "../models/classroom.model.js";
 import {
+  ClassroomDocument,
+  ClassroomModel,
+} from "../models/classroom.model.js";
+import {
+  ClassroomParams,
   findAndUpdateClassroom,
   findOneClassroom,
   terminateClassroom,
   updateClassroomState,
+  updateClassroomStateInterval,
 } from "../service/classroom.service.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import {
@@ -19,18 +24,23 @@ import {
 import { JoinRequestModel } from "../models/joinRequest.model.js";
 import { UserModel } from "../models/user.model.js";
 import { CustomAPIError } from "../errors/custom-api.error.js";
-import cron from "node-cron";
+// import cron from "node-cron";
 import { errorResponse, successResponse } from "../utils/response.util.js";
-import { ForbiddenError } from "src/errors/forbidden.error.js";
-import { ConflictError } from "src/errors/conflict.error.js";
-import { InternalServerError } from "src/errors/internal-server-error.error.js";
-import { createLocation } from "src/service/location.service.js";
+import { ForbiddenError } from "../errors/forbidden.error.js";
+import { ConflictError } from "../errors/conflict.error.js";
+import { InternalServerError } from "../errors/internal-server-error.error.js";
+import { createLocation } from "../service/location.service.js";
+
+import schedule from "node-schedule";
+import { date } from "zod";
 
 // Schedule a trigger to run every 5 seconds
-cron.schedule("*/5 * * * * *", () => {
-  // Call the update function
-  updateClassroomState();
-});
+// cron.schedule("*/5 * * * * *", () => {
+//   // Call the update function
+//   updateClassroomState();
+// });
+
+const scheduledTasks: any = [];
 
 //@description     Search classroom
 //@route           GET /api/v1/classroom/search?subjectName=
@@ -162,7 +172,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     isPublic,
     ownerApprovalRequired,
     secretKey,
-  } = req.body;
+  }: ClassroomParams = req.body;
 
   if (
     !classroomName ||
@@ -187,9 +197,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     ownerApprovalRequired = false;
   }
 
-  const startDateTime = Date.parse(startTime);
-  const endDateTime = Date.parse(endTime);
-  if (startDateTime >= endDateTime || startDateTime < Date.now()) {
+  if (startTime >= endTime || startTime < Date.now()) {
     throw new BadRequestError("Invalid start and end time!");
   }
 
@@ -203,8 +211,8 @@ export const createClassroom = async (req: Request, res: Response) => {
     latitude,
     address,
 
-    startTime: startDateTime,
-    endTime: endDateTime,
+    startTime: startTime,
+    endTime: endTime,
     location: location,
 
     currentParticipants: [res.locals.userData.user],
@@ -218,6 +226,14 @@ export const createClassroom = async (req: Request, res: Response) => {
     creator: res.locals.userData.user,
     owner: res.locals.userData.user,
   });
+
+  const startTask = schedule.scheduleJob(startTime, () =>
+    updateClassroomState({ _id: classroom._id }, ClassroomState.LEARNING)
+  );
+  const endTask = schedule.scheduleJob(endTime, () =>
+    updateClassroomState({ _id: classroom._id }, ClassroomState.FINISHED)
+  );
+  scheduledTasks[classroom._id] = [startTask, endTask];
 
   if (!classroom) throw new BadRequestError("Something went wrong!");
 
@@ -248,8 +264,30 @@ export const updateClassroom = async (req: Request, res: Response) => {
     throw new BadRequestError("Can not update finished classroom!");
   }
 
-  let { classroomName, subject, longitude, latitude, address, description } =
-    req.body;
+  let {
+    classroomName,
+    subject,
+    longitude,
+    latitude,
+    address,
+    description,
+    startTime,
+    endTime,
+  }: ClassroomParams = req.body;
+
+  if (startTime || endTime) {
+    let startTimeFinal = startTime
+      ? startTime
+      : Date.parse(classroom.startTime);
+    let endTimeFinal = endTime ? endTime : Date.parse(classroom.endTime);
+    if (startTime) {
+      if (startTimeFinal < Date.now())
+        throw new BadRequestError("Invalid start and end time!");
+    }
+    if (startTimeFinal >= endTimeFinal) {
+      throw new BadRequestError("Invalid start and end time!");
+    }
+  }
 
   const location = createLocation({ longitude, latitude });
 
@@ -260,6 +298,8 @@ export const updateClassroom = async (req: Request, res: Response) => {
       location,
       address,
       description,
+      startTime: startTime ? startTime : undefined,
+      endTime: endTime ? endTime : undefined,
     }).filter(([_, value]) => value !== undefined)
   );
 
@@ -270,10 +310,27 @@ export const updateClassroom = async (req: Request, res: Response) => {
       },
       updateObj,
       {
-        upsert: true,
         new: true,
       }
     );
+  }
+
+  if (updateObj.startTime) {
+    if (scheduledTasks[classroomId][0]) scheduledTasks[classroomId][0].cancel();
+    const newStartTask = schedule.scheduleJob(
+      new Date(updateObj.startTime as number),
+      () =>
+        updateClassroomState({ _id: classroom._id }, ClassroomState.LEARNING)
+    );
+    scheduledTasks[classroomId][0] = newStartTask;
+  }
+
+  if (updateObj.endTime) {
+    if (scheduledTasks[classroomId][1]) scheduledTasks[classroomId][1].cancel();
+    const newEndTask = schedule.scheduleJob(updateObj.endDate as number, () =>
+      updateClassroomState({ _id: classroom._id }, ClassroomState.FINISHED)
+    );
+    scheduledTasks[classroomId][1] = newEndTask;
   }
 
   if (!classroom) {
@@ -511,7 +568,6 @@ export const endClassroom = async (req: Request, res: Response) => {
       terminated: true,
     },
     {
-      upsert: true,
       new: true,
     }
   );
@@ -702,7 +758,7 @@ export const leaveClassroom = async (req: Request, res: Response) => {
         terminated: false,
       },
       { $pull: { currentParticipants: userId } },
-      { new: true, upsert: false }
+      { new: true }
     );
   }
 

@@ -175,7 +175,6 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       },
       filteredUpdateObj,
       {
-        upsert: true,
         new: true,
       }
     );

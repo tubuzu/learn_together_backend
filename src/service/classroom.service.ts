@@ -43,7 +43,7 @@ export async function terminateClassroom(
   );
 }
 
-export const updateClassroomState = async () => {
+export const updateClassroomStateInterval = async () => {
   const curTime = new Date();
   const classrooms = await ClassroomModel.find({
     $or: [
@@ -60,3 +60,35 @@ export const updateClassroomState = async () => {
     await classroom.save();
   }
 };
+
+export const updateClassroomState = async (query: any, state: string) => {
+  console.log("hehe");
+  if (!Object.values(ClassroomState).includes(state)) return;
+  await findAndUpdateClassroom(
+    {
+      ...query,
+      terminated: false,
+      isDeleted: false,
+    },
+    {
+      $set: { state: state },
+    }
+  );
+};
+
+export interface ClassroomParams {
+  classroomName: string;
+  subject: string;
+  maxParticipants: number;
+  longitude: number;
+  latitude: number;
+  address: string;
+  startTime: number;
+  endTime: number;
+
+  //option
+  description?: string;
+  isPublic?: boolean;
+  ownerApprovalRequired?: boolean;
+  secretKey?: string;
+}

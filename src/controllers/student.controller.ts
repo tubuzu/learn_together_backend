@@ -65,7 +65,6 @@ export const updateStudentProfile = async (req: Request, res: Response) => {
       schoolName,
     },
     {
-      upsert: false,
       new: true,
     }
   );
