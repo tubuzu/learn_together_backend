@@ -24,12 +24,13 @@ import { errorResponse, successResponse } from "../utils/response.util.js";
 import { ForbiddenError } from "src/errors/forbidden.error.js";
 import { ConflictError } from "src/errors/conflict.error.js";
 import { InternalServerError } from "src/errors/internal-server-error.error.js";
+import { createLocation } from "src/service/location.service.js";
 
 // Schedule a trigger to run every 5 seconds
-// cron.schedule("*/5 * * * * *", () => {
-//   // Call the update function
-//   updateClassroomState();
-// });
+cron.schedule("*/5 * * * * *", () => {
+  // Call the update function
+  updateClassroomState();
+});
 
 //@description     Search classroom
 //@route           GET /api/v1/classroom/search?subjectName=
@@ -140,7 +141,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     terminated: false,
     currentParticipants: { $in: res.locals.userData.user },
     isDeleted: false,
-  });
+  }).exec();
   if (existClassrooms && existClassrooms.length >= 3) {
     throw new ForbiddenError("You can only join a maximum of 3 classrooms!");
   }
@@ -192,10 +193,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     throw new BadRequestError("Invalid start and end time!");
   }
 
-  const location = {
-    type: "Point",
-    coordinates: [parseFloat(longitude), parseFloat(latitude)],
-  };
+  const location = createLocation({ longitude, latitude });
 
   const classroom = await ClassroomModel.create({
     classroomName,
@@ -238,7 +236,7 @@ export const updateClassroom = async (req: Request, res: Response) => {
     _id: classroomId,
     terminated: false,
     isDeleted: false,
-  });
+  }).exec();
 
   if (!classroom) throw new NotFoundError("Classroom not found!");
 
@@ -253,15 +251,9 @@ export const updateClassroom = async (req: Request, res: Response) => {
   let { classroomName, subject, longitude, latitude, address, description } =
     req.body;
 
-  let location = undefined;
-  if (longitude && latitude) {
-    location = {
-      type: "Point",
-      coordinates: [parseFloat(longitude), parseFloat(latitude)],
-    };
-  }
+  const location = createLocation({ longitude, latitude });
 
-  let filteredUpdateObj = Object.fromEntries(
+  const updateObj = Object.fromEntries(
     Object.entries({
       classroomName,
       subject,
@@ -271,12 +263,12 @@ export const updateClassroom = async (req: Request, res: Response) => {
     }).filter(([_, value]) => value !== undefined)
   );
 
-  if (Object.keys(filteredUpdateObj).length !== 0) {
+  if (Object.keys(updateObj).length !== 0) {
     classroom = await findAndUpdateClassroom(
       {
         _id: classroomId,
       },
-      filteredUpdateObj,
+      updateObj,
       {
         upsert: true,
         new: true,
@@ -296,7 +288,7 @@ export const updateClassroom = async (req: Request, res: Response) => {
 //@access          Public
 export const joinAPublicClassRoom = async (req: Request, res: Response) => {
   const { classroomId } = req.params;
-  const { role } = req.query;
+  const { role } = req.query as Record<string, string>;
   const userId = res.locals.userData.user;
 
   //find classroom
@@ -322,14 +314,17 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
   }
 
   // check if classroom full
-  if (classroom.currentParticipants.length >= classroom.maxParticipants) {
+  if (
+    classroom.currentParticipants &&
+    classroom.currentParticipants.length >= classroom.maxParticipants
+  ) {
     throw new ConflictError("This classroom is full!");
   }
 
   // check for valid role
   if (
     !role ||
-    (role != ClassroomMemberRole.STUDENT && role != ClassroomMemberRole.TUTOR)
+    ![ClassroomMemberRole.STUDENT, ClassroomMemberRole.TUTOR].includes(role)
   ) {
     throw new BadRequestError("Invalid role!");
   }
