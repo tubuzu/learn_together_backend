@@ -248,6 +248,7 @@ export const createClassroom = async (req: Request, res: Response) => {
  */
 export const updateClassroom = async (req: Request, res: Response) => {
   const { classroomId } = req.params;
+  
   let classroom = await ClassroomModel.findOne({
     _id: classroomId,
     terminated: false,
@@ -258,10 +259,6 @@ export const updateClassroom = async (req: Request, res: Response) => {
 
   if (classroom.owner != res.locals.userData.user) {
     throw new BadRequestError("Only owner can update study classroom!");
-  }
-
-  if (classroom.state == ClassroomState.FINISHED) {
-    throw new BadRequestError("Can not update finished classroom!");
   }
 
   let {
@@ -280,8 +277,7 @@ export const updateClassroom = async (req: Request, res: Response) => {
       ? startTime
       : Date.parse(classroom.startTime);
     let endTimeFinal = endTime ? endTime : Date.parse(classroom.endTime);
-    if (startTime) {
-      if (startTimeFinal < Date.now())
+    if (startTime && startTimeFinal < Date.now()) {
         throw new BadRequestError("Invalid start and end time!");
     }
     if (startTimeFinal >= endTimeFinal) {
@@ -303,6 +299,27 @@ export const updateClassroom = async (req: Request, res: Response) => {
     }).filter(([_, value]) => value !== undefined)
   );
 
+  if (updateObj.startTime) {
+    if (scheduledTasks[classroomId][0]) scheduledTasks[classroomId][0].cancel();
+    const newStartTask = schedule.scheduleJob(
+      new Date(updateObj.startTime as number),
+      () =>
+        updateClassroomState({ _id: classroom._id }, ClassroomState.LEARNING)
+    );
+    scheduledTasks[classroomId][0] = newStartTask;
+    updateObj.state = ClassroomState.WAITING;
+  }
+
+  if (updateObj.endTime) {
+    if (scheduledTasks[classroomId][1]) scheduledTasks[classroomId][1].cancel();
+    const newEndTask = schedule.scheduleJob(updateObj.endDate as number, () =>
+      updateClassroomState({ _id: classroom._id }, ClassroomState.FINISHED)
+    );
+    scheduledTasks[classroomId][1] = newEndTask;
+    if (!updateObj.startTime && classroom.state == ClassroomState.FINISHED)
+      updateObj.state = ClassroomState.LEARNING;
+  }
+
   if (Object.keys(updateObj).length !== 0) {
     classroom = await findAndUpdateClassroom(
       {
@@ -313,24 +330,6 @@ export const updateClassroom = async (req: Request, res: Response) => {
         new: true,
       }
     );
-  }
-
-  if (updateObj.startTime) {
-    if (scheduledTasks[classroomId][0]) scheduledTasks[classroomId][0].cancel();
-    const newStartTask = schedule.scheduleJob(
-      new Date(updateObj.startTime as number),
-      () =>
-        updateClassroomState({ _id: classroom._id }, ClassroomState.LEARNING)
-    );
-    scheduledTasks[classroomId][0] = newStartTask;
-  }
-
-  if (updateObj.endTime) {
-    if (scheduledTasks[classroomId][1]) scheduledTasks[classroomId][1].cancel();
-    const newEndTask = schedule.scheduleJob(updateObj.endDate as number, () =>
-      updateClassroomState({ _id: classroom._id }, ClassroomState.FINISHED)
-    );
-    scheduledTasks[classroomId][1] = newEndTask;
   }
 
   if (!classroom) {
