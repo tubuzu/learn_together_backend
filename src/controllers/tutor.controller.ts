@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
-import { UserModel } from "../models/user.model.js";
+import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
+import { paginate } from "../utils/paginate.util.js";
 // import { TutorModel } from "../models/tutor.model.js";
 
 //@description     Get or Search all tutors
@@ -13,23 +14,40 @@ export const searchTutor = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const perPage = parseInt(req.query.perPage as string) || 10;
 
-  const keyword: any = {
-    proofsOfLevel: { $exists: true, $ne: [] },
-  };
+  const keyword: any = {};
+  if (subjectId) keyword.subject = { $eq: subjectId };
   if (searchQuery)
-    keyword.$or = {
-      email: { $regex: searchQuery, $options: "i" },
-      firstName: { $regex: searchQuery, $options: "i" },
-      lastName: { $regex: searchQuery, $options: "i" },
-    };
-  if (subjectId) {
-    keyword.approvedSubjects = { $in: [subjectId] };
-  }
+    keyword.$or = [
+      { email: { $regex: searchQuery, $options: "i" } },
+      { firstName: { $regex: searchQuery, $options: "i" } },
+      { lastName: { $regex: searchQuery, $options: "i" } },
+    ];
 
-  const tutors = await UserModel.find(keyword as Record<string, any>)
-    .skip((page - 1) * perPage)
-    .limit(perPage)
-    .exec();
+  const pipeline = [
+    { $group: { _id: "$user", proof: { $first: "$$ROOT" } } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    { $replaceRoot: { newRoot: { $arrayElemAt: ["$user", 0] } } },
+    {
+      $project: {
+        accountStatus: 0,
+        password: 0,
+        accountVerificationToken: 0,
+        passwordResetToken: 0,
+      },
+    },
+    { $match: keyword },
+    { $skip: (page - 1) * perPage },
+    { $limit: perPage },
+  ];
+
+  const tutors = await ProofOfLevelModel.aggregate(pipeline).exec();
 
   return res.status(StatusCodes.OK).json({
     success: true,
@@ -41,3 +59,25 @@ export const searchTutor = async (req: Request, res: Response) => {
     },
   });
 };
+// {
+//   $project: {
+//     _id: "$user._id",
+//     email: "$user.email",
+//     firstName: "$user.firstName",
+//     lastName: "$user.lastName",
+//     avatar: "$user.avatar",
+//     background: "$user.background",
+//     address: "$user.address",
+//     about: "$user.about",
+//     dateOfBirth: "$user.dateOfBirth",
+//     gender: "$user.gender",
+//     phoneNumber: "$user.phoneNumber",
+//     studentCode: "$user.studentCode",
+//     activityClass: "$user.activityClass",
+//     schoolName: "$user.schoolName",
+//     studyHardPoint: "$user.studyHardPoint",
+//     isDeleted: "$user.isDeleted",
+//     createdAt: "$user.createdAt",
+//     updatedAt: "$user.updatedAt",
+//   },
+// },

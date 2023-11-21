@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 // import lodashPkg from 'lodash';
-import cloudinary from "../utils/cloudinary.js";
 import { StatusCodes } from "http-status-codes";
 import { findAndUpdateUser } from "../service/user.service.js";
 import { UserModel } from "../models/user.model.js";

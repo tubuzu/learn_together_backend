@@ -277,15 +277,6 @@ export const acceptProofOfLevelRequest = async (
     request: request._id,
   });
 
-  await findAndUpdateUser(
-    { _id: request.sender },
-    {
-      $push: {
-        proofsOfLevel: proof._id,
-      },
-    }
-  );
-
   return res.status(StatusCodes.CREATED).json({
     success: true,
     message: "Request accepted!",

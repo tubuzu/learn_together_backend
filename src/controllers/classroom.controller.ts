@@ -33,12 +33,14 @@ import { createLocation } from "../service/location.service.js";
 
 import schedule from "node-schedule";
 import { date } from "zod";
+import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 
 // Schedule a trigger to run every 5 seconds
 // cron.schedule("*/5 * * * * *", () => {
 //   // Call the update function
 //   updateClassroomState();
 // });
+const MAX_CLASSROOM_JOIN_LIMIT = 3;
 
 const scheduledTasks: any = [];
 
@@ -152,8 +154,10 @@ export const createClassroom = async (req: Request, res: Response) => {
     currentParticipants: { $in: res.locals.userData.user },
     isDeleted: false,
   }).exec();
-  if (existClassrooms && existClassrooms.length >= 3) {
-    throw new ForbiddenError("You can only join a maximum of 3 classrooms!");
+  if (existClassrooms && existClassrooms.length >= MAX_CLASSROOM_JOIN_LIMIT) {
+    throw new ForbiddenError(
+      `You can only join a maximum of ${MAX_CLASSROOM_JOIN_LIMIT} classrooms!`
+    );
   }
 
   let {
@@ -227,10 +231,10 @@ export const createClassroom = async (req: Request, res: Response) => {
     owner: res.locals.userData.user,
   });
 
-  const startTask = schedule.scheduleJob(startTime, () =>
+  const startTask = schedule.scheduleJob(new Date(startTime), () =>
     updateClassroomState({ _id: classroom._id }, ClassroomState.LEARNING)
   );
-  const endTask = schedule.scheduleJob(endTime, () =>
+  const endTask = schedule.scheduleJob(new Date(endTime), () =>
     updateClassroomState({ _id: classroom._id }, ClassroomState.FINISHED)
   );
   scheduledTasks[classroom._id] = [startTask, endTask];
@@ -248,7 +252,7 @@ export const createClassroom = async (req: Request, res: Response) => {
  */
 export const updateClassroom = async (req: Request, res: Response) => {
   const { classroomId } = req.params;
-  
+
   let classroom = await ClassroomModel.findOne({
     _id: classroomId,
     terminated: false,
@@ -278,7 +282,7 @@ export const updateClassroom = async (req: Request, res: Response) => {
       : Date.parse(classroom.startTime);
     let endTimeFinal = endTime ? endTime : Date.parse(classroom.endTime);
     if (startTime && startTimeFinal < Date.now()) {
-        throw new BadRequestError("Invalid start and end time!");
+      throw new BadRequestError("Invalid start and end time!");
     }
     if (startTimeFinal >= endTimeFinal) {
       throw new BadRequestError("Invalid start and end time!");
@@ -355,9 +359,7 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     currentParticipants: { $nin: userId },
     // isDeleted: false,
   };
-  const classroom = await ClassroomModel.findOne(keyword)
-    .populate("subject")
-    .populate("proofsOfLevel");
+  const classroom = await ClassroomModel.findOne(keyword).populate("subject");
   if (!classroom) {
     throw new BadRequestError(
       "Classroom is not currently available or you have joined this classroom"
@@ -387,15 +389,8 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
 
   // check if role is tutor and user has proof of level to be a tutor in this class
   if (role == ClassroomMemberRole.TUTOR) {
-    const user = await UserModel.findById(userId).populate("proofsOfLevel");
-    if (!user) {
-      throw new InternalServerError("Something wrong happen!");
-    }
-    if (
-      !user.proofsOfLevel.some(
-        (proof: any) => proof.subject == classroom.subject
-      )
-    ) {
+    const proofs = await ProofOfLevelModel.find({ user: { $eq: userId } });
+    if (!proofs.some((proof: any) => proof.subject == classroom.subject)) {
       throw new ForbiddenError(
         "You don't have any proof of level to be a tutor in this classroom!"
       );
@@ -463,9 +458,7 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
   };
 
   // find classroom
-  const classroom = await ClassroomModel.findOne(keyword)
-    .populate("subject")
-    .populate("proofsOfLevel");
+  const classroom = await ClassroomModel.findOne(keyword).populate("subject");
   if (!classroom) {
     throw new ForbiddenError(
       "Classroom is not currently available or you have joined this classroom"
@@ -497,15 +490,8 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
 
   // check if role is tutor and user has proof of level to be this classroom tutor
   if (role == ClassroomMemberRole.TUTOR) {
-    const user = await UserModel.findById(userId).populate("proofsOfLevel");
-    if (!user) {
-      throw new InternalServerError("Something wrong happen");
-    }
-    if (
-      !user.proofsOfLevel.some(
-        (proof: any) => proof.subject == classroom.subject
-      )
-    ) {
+    const proofs = await ProofOfLevelModel.find({ user: { $eq: userId } });
+    if (!proofs.some((proof: any) => proof.subject == classroom.subject)) {
       throw new ForbiddenError(
         "You don't have any proof of level for this classroom subject!"
       );

@@ -53,17 +53,11 @@ const userSchema = new mongoose.Schema<UserDocument>(
     activityClass: { type: String },
     schoolName: { type: String },
     studyHardPoint: { type: Number, default: 0 },
-    //tutor
-    proofsOfLevel: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "ProofOfLevel" },
-    ],
-    // student: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
-    // tutor: { type: mongoose.Schema.Types.ObjectId, ref: "Tutor" },
 
-    notifications: {
-      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
-      select: false,
-    },
+    // notifications: {
+    //   type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
+    //   select: false,
+    // },
 
     passwordResetToken: {
       type: String,
@@ -157,12 +151,8 @@ export interface UserDocument extends Document {
   activityClass: string;
   schoolName: string;
   studyHardPoint?: number;
-  //tutor
-  proofsOfLevel?: string[];
-  // student: string;
-  // tutor: string;
 
-  notifications?: string[];
+  // notifications?: string[];
 
   passwordResetToken?: string;
   accountStatus: boolean;

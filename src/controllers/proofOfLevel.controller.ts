@@ -88,15 +88,6 @@ export const deleteProofOfLevel = async (req: Request, res: Response) => {
     throw new NotFoundError("Proof of level not found!");
   }
 
-  await findAndUpdateUser(
-    {
-      _id: proof.user,
-    },
-    {
-      $pull: { proofsOfLevel: proofOfLevelId },
-    }
-  );
-
   await proof.delete();
 
   return res.status(StatusCodes.CREATED).json({
