@@ -34,7 +34,6 @@ app.set("trust proxy", (ip: any) => {
 connectDB();
 
 // extra packages
-app.use(cookieParser());
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
@@ -43,9 +42,10 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: true,
     credentials: true,
   })
 );
@@ -59,11 +59,6 @@ app.use(function (req, res, next) {
     "Origin, X-Requested-With, Content-Type, Accept"
   );
   res.header("Access-Control-Allow-Origin", req.headers.origin);
-  if ("OPTIONS" == req.method) {
-    res.send(200);
-  } else {
-    next();
-  }
   next();
 });
 
