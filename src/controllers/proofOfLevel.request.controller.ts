@@ -124,7 +124,7 @@ export const getUserProofOfLevelRequestById = async (
   return res.status(StatusCodes.OK).json({
     success: true,
     data: {
-      proof: request,
+      request,
     },
   });
 };
@@ -146,7 +146,7 @@ export const getProofOfLevelRequestById = async (
   return res.status(StatusCodes.OK).json({
     success: true,
     data: {
-      proof: request,
+      request,
     },
   });
 };

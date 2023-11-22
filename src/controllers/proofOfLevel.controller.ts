@@ -61,10 +61,6 @@ export const getAllProofOfLevelByUserId = async (
     .skip((page - 1) * perPage)
     .limit(perPage);
 
-  if (!proofs || proofs.length == 0) {
-    throw new NotFoundError("No proof found!");
-  }
-
   return res.status(StatusCodes.OK).json({
     success: true,
     data: {
