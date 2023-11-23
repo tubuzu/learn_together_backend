@@ -15,13 +15,13 @@ const proofOfLevelRequestSchema =
         enum: Object.values(RequestState),
         default: RequestState.WAITING,
       },
-      sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      noteOfSender: { type: String },
-      reviewer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      noteOfReviewer: { type: String },
+      sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      noteOfSender: { type: String, default: null },
+      reviewer: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+      noteOfReviewer: { type: String, default: null },
 
       isDeleted: { type: Boolean, default: false },
-      deletedAt: { type: Date },
+      deletedAt: { type: Date, default: null },
     },
     { timestamps: true }
   );

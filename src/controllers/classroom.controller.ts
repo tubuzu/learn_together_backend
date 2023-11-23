@@ -40,7 +40,7 @@ import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 //   // Call the update function
 //   updateClassroomState();
 // });
-const MAX_CLASSROOM_JOIN_LIMIT = 3;
+const MAX_CLASSROOM_JOIN_LIMIT = 5;
 
 const scheduledTasks: any = [];
 

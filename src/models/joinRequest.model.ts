@@ -23,10 +23,10 @@ const joinRequestSchema = new mongoose.Schema<JoinRequestDocument>(
       enum: Object.values(RequestState),
       default: RequestState.WAITING,
     },
-    reviewer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    reviewer: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
 
     isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -7,10 +7,10 @@ const subjectSchema = new mongoose.Schema<SubjectDocument>(
     isElectiveCourse: { type: Boolean, required: true },
     isDepartmentCourse: { type: Boolean, required: true },
 
-    description: { type: String },
+    description: { type: String, default: null },
 
     isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

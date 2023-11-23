@@ -20,7 +20,7 @@ const adminSchema = new mongoose.Schema<AdminDocument>(
     },
 
     isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

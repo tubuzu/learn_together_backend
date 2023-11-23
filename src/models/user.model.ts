@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema<UserDocument>(
     },
     address: {
       type: String,
+      default: null,
     },
     phoneNumber: {
       type: String,
@@ -32,9 +33,11 @@ const userSchema = new mongoose.Schema<UserDocument>(
         /^[9]+[7-8]+\d{8}$/,
         "Please provide a valid phone number: eg 9800000000",
       ],
+      default: null
     },
     dateOfBirth: {
       type: Date,
+      default: null,
     },
     gender: {
       type: String,
@@ -44,14 +47,14 @@ const userSchema = new mongoose.Schema<UserDocument>(
         message: "{VALUE} is not supported",
       },
     },
-    avatar: { type: String, default: "", trim: true },
-    background: { type: String, default: "", trim: true },
-    about: { type: String },
+    avatar: { type: String, default: null, trim: true },
+    background: { type: String, default: null, trim: true },
+    about: { type: String, default: null },
 
     //student
     studentCode: { type: String, trim: true },
-    activityClass: { type: String },
-    schoolName: { type: String },
+    activityClass: { type: String, default: null },
+    schoolName: { type: String, default: null },
     studyHardPoint: { type: Number, default: 0 },
 
     // notifications: {
@@ -61,6 +64,7 @@ const userSchema = new mongoose.Schema<UserDocument>(
 
     passwordResetToken: {
       type: String,
+      default: null,
       select: false,
     },
     accountStatus: {
@@ -70,18 +74,19 @@ const userSchema = new mongoose.Schema<UserDocument>(
     },
     accountVerificationToken: {
       type: String,
+      default: null,
       select: false,
     },
 
     password: {
       type: String,
-      // required: [true, "Please provide a password"],
+      required: [true, "Please provide a password"],
       minlength: 5,
       select: false,
     },
 
     isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

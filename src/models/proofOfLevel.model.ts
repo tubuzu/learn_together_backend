@@ -14,10 +14,10 @@ const proofOfLevelSchema = new mongoose.Schema<ProofOfLevelDocument>(
       ref: "ProofOfLevelRequest",
       required: true,
     },
-    noteOfSender: { type: String },
+    noteOfSender: { type: String, default: null },
 
     isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

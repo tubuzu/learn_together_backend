@@ -14,9 +14,9 @@ const classroomSchema = new mongoose.Schema<ClassroomDocument>(
       ref: "User",
       required: true,
     },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
-    tutor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    tutor: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     currentParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     historyParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     maxParticipants: {
@@ -46,7 +46,7 @@ const classroomSchema = new mongoose.Schema<ClassroomDocument>(
       coordinates: [Number], // [22.2475, 14.2547]  [longitude, latitude]
     },
     address: { type: String, required: true },
-    description: { type: String },
+    description: { type: String, default: null },
 
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
@@ -56,7 +56,7 @@ const classroomSchema = new mongoose.Schema<ClassroomDocument>(
     secretKey: { type: String },
 
     isDeleted: { type: Boolean, default: false },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
