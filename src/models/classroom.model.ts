@@ -14,11 +14,19 @@ const classroomSchema = new mongoose.Schema<ClassroomDocument>(
       ref: "User",
       required: true,
     },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
 
-    tutor: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    currentParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    historyParticipants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    tutor: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    currentParticipants: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    ],
+    historyParticipants: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    ],
     maxParticipants: {
       type: Number,
       required: true,

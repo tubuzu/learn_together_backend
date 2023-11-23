@@ -85,6 +85,7 @@ export interface ClassroomParams {
   address: string;
   startTime: number;
   endTime: number;
+  ownerIsTutor: boolean;
 
   //option
   description?: string;

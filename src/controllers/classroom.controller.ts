@@ -149,6 +149,8 @@ export const getUserCurrentClassrooms = async (req: Request, res: Response) => {
  * @route POST /api/v1/classroom/create
  */
 export const createClassroom = async (req: Request, res: Response) => {
+  const userId = res.locals.userData.user;
+
   const existClassrooms = await ClassroomModel.find({
     terminated: false,
     currentParticipants: { $in: res.locals.userData.user },
@@ -170,6 +172,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     address,
     startTime,
     endTime,
+    ownerIsTutor,
 
     //option
     description,
@@ -203,6 +206,16 @@ export const createClassroom = async (req: Request, res: Response) => {
 
   if (startTime >= endTime || startTime < Date.now()) {
     throw new BadRequestError("Invalid start and end time!");
+  }
+
+  if (ownerIsTutor) {
+    const proofs = await ProofOfLevelModel.find({ user: userId });
+
+    if (!proofs.some((proof: any) => proof.subject == classroom.subject)) {
+      throw new BadRequestError(
+        "You do not have any proof of level for this classroom subject!"
+      );
+    }
   }
 
   const location = createLocation({ longitude, latitude });
@@ -804,6 +817,8 @@ export const updateClassroomTutor = async (req: Request, res: Response) => {
   const ownerId = res.locals.userData.user;
   const { classroomId, userId } = req.params;
 
+  const proofs = await ProofOfLevelModel.find({ user: userId });
+
   const classroom = await ClassroomModel.findOne({
     _id: classroomId,
     owner: ownerId,
@@ -814,6 +829,12 @@ export const updateClassroomTutor = async (req: Request, res: Response) => {
     throw new BadRequestError(
       "Classroom not valid or you are not the owner of this classroom!"
     );
+
+  if (!proofs.some((proof: any) => proof.subject == classroom.subject)) {
+    throw new BadRequestError(
+      "This user do not have any proof of level for this classroom subject!"
+    );
+  }
 
   const updatedClassroom = await ClassroomModel.findByIdAndUpdate(
     classroom._id,
