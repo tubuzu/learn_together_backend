@@ -63,6 +63,11 @@ app.use(function (req, res, next) {
 });
 
 // routes
+app.get("/test", (req, res: express.Response) => {
+  res.status(200).json({
+    message: "OK",
+  });
+});
 app.use("/api/v1", authRoutes);
 app.use("/api/v1", sessionRoutes);
 app.use("/api/v1", userRoutes);
@@ -82,4 +87,23 @@ const server = http.createServer(app);
 server.listen(PORT);
 server.on("listening", () => {
   console.log(`Server running on PORT ${PORT}...`);
+});
+
+// Keep server on Render alive
+import cron from "node-cron";
+import https from "https";
+cron.schedule("*/14 * * * *", () => {
+  https
+    .get(`${process.env.SERVER_ENDPOINT_PROD!}/test`, (res: any) => {
+      if (res.statusCode === 200) {
+        console.log("Server restarted");
+      } else {
+        console.error(`
+          Failed to restart server with status code: ${res.statusCode}
+        `);
+      }
+    })
+    .on("error", (err: any) => {
+      console.error("Error during Restart: ", err.message);
+    });
 });
