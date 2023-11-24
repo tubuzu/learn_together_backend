@@ -238,6 +238,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     location: location,
 
     currentParticipants: [res.locals.userData.user],
+    historyParticipants: [res.locals.userData.user],
 
     //option
     description,
@@ -449,8 +450,10 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     updateQuery.$set = { tutor: userId };
   }
 
-  updateQuery.$addToSet = { currentParticipants: userId };
-  updateQuery.$addToSet = { historyParticipants: userId };
+  updateQuery.$addToSet = {
+    currentParticipants: userId,
+    historyParticipants: userId,
+  };
 
   if (classroom.currentParticipants.length === classroom.maxParticipants) {
     updateQuery.$set = { available: false };
@@ -534,8 +537,10 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     updateQuery.$set = { tutor: userId };
   }
 
-  updateQuery.$addToSet = { currentParticipants: userId };
-  updateQuery.$addToSet = { historyParticipants: userId };
+  updateQuery.$addToSet = {
+    currentParticipants: userId,
+    historyParticipants: userId,
+  };
 
   if (classroom.currentParticipants.length === classroom.maxParticipants) {
     updateQuery.$set = { available: false };
@@ -643,8 +648,10 @@ export const acceptJoinRequest = async (req: Request, res: Response) => {
     updateQuery.$set = { tutor: request.user };
   }
 
-  updateQuery.$addToSet = { currentParticipants: request.user };
-  updateQuery.$addToSet = { historyParticipants: request.user };
+  updateQuery.$addToSet = {
+    currentParticipants: request.user,
+    historyParticipants: request.user,
+  };
   updateQuery.$pull = { joinRequest: request._id };
   if (classroom.currentParticipants.length == classroom.maxParticipants)
     updateQuery.$set = { available: false };
