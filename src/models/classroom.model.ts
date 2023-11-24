@@ -84,6 +84,7 @@ export interface ClassroomDocument extends Document {
   state: string;
   available: boolean;
   terminated: boolean;
+  joinRequests: string[];
 
   // longitude: string;
   // latitude: string;

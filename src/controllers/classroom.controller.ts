@@ -57,6 +57,7 @@ export const searchClassroom = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const perPage = parseInt(req.query.perPage as string) || 10;
   const classrooms = await ClassroomModel.find(keyword)
+    .populate("joinRequests")
     .skip((page - 1) * perPage)
     .limit(perPage);
   return res
@@ -101,7 +102,9 @@ export const searchClassroomOnMap = async (req: Request, res: Response) => {
 
   if (search) keyword.subjectName = { $regex: search, $options: "i" };
 
-  const classrooms = await ClassroomModel.find(keyword as Record<string, any>);
+  const classrooms = await ClassroomModel.find(
+    keyword as Record<string, any>
+  ).populate("joinRequests");
   return res
     .status(StatusCodes.OK)
     .json(successResponse({ data: { classrooms } }));
@@ -114,7 +117,7 @@ export const getClassroomById = async (req: Request, res: Response) => {
   const classroom = await ClassroomModel.findOne({
     _id: req.params.classroomId,
     isDeleted: false,
-  });
+  }).populate("joinRequests");
 
   return res
     .status(StatusCodes.OK)
@@ -137,7 +140,9 @@ export const getUserCurrentClassrooms = async (req: Request, res: Response) => {
     keyword.owner = { $eq: res.locals.userData.user };
   }
 
-  const classrooms = await ClassroomModel.find(keyword);
+  const classrooms = await ClassroomModel.find(keyword).populate(
+    "joinRequests"
+  );
 
   return res
     .status(StatusCodes.OK)
@@ -412,6 +417,17 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
 
   // send join request if ownerApprovalRequired == true
   if (classroom.ownerApprovalRequired) {
+    await classroom.populate("joinRequests").execPopulate();
+    if (
+      classroom.joinRequests.some(
+        (x: any) => x.user == userId && x.state == RequestState.WAITING
+      )
+    ) {
+      throw new BadRequestError(
+        "You have sent join request to this classroom!"
+      );
+    }
+
     const joinRequest = await JoinRequestModel.create({
       user: userId,
       classroom: classroomId,
@@ -708,7 +724,7 @@ export const getAllJoinRequestByClassroomId = async (
 ) => {
   const userId = res.locals.userData.user;
 
-  let classroom = await findOneClassroom({
+  let classroom = await ClassroomModel.findOne({
     _id: req.params.classroomId,
     owner: userId,
     terminated: false,
