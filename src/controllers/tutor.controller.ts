@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
-import { paginate } from "../utils/paginate.util.js";
+import { pageResponse } from "../utils/response.util.js";
 // import { TutorModel } from "../models/tutor.model.js";
 
 //@description     Get or Search all tutors
@@ -51,12 +51,7 @@ export const searchTutor = async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: {
-      tutors: tutors,
-      count: tutors.length,
-      currentPage: page,
-      totalPages: Math.ceil(tutors.length / perPage),
-    },
+    data: pageResponse(tutors, page, perPage),
   });
 };
 // {

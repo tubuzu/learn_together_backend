@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { UserModel } from "../models/user.model.js";
 import { findAndUpdateUser } from "../service/user.service.js";
+import { pageResponse } from "../utils/response.util.js";
 
 //@description     Get or Search all students
 //@route           GET /api/v1/student?search=
@@ -38,12 +39,7 @@ export const searchStudent = async (req: Request, res: Response) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    data: {
-      students,
-      count: students.length,
-      currentPage: page,
-      totalPages: Math.ceil(students.length / perPage),
-    },
+    data: pageResponse(students, page, perPage),
   });
 };
 

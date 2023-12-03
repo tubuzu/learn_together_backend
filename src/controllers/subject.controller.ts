@@ -4,11 +4,14 @@ import { BadRequestError } from "../errors/bad-request.error.js";
 import { SubjectModel } from "../models/subject.model.js";
 import { findAndUpdateSubject } from "../service/subject.service.js";
 import { NotFoundError } from "../errors/not-found.error.js";
+import { pageResponse } from "../utils/response.util.js";
 
 //@description     Get or Search all subjects
 //@route           GET /api/v1/admin/subject?search=
 //@access          Public
 export const searchSubject = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const perPage = parseInt(req.query.perPage as string) || 10;
   const keyword = req.query.search
     ? {
         subjectName: { $regex: req.query.search, $options: "i" },
@@ -21,9 +24,7 @@ export const searchSubject = async (req: Request, res: Response) => {
   const subjects = await SubjectModel.find(keyword as Record<string, any>);
   res.status(StatusCodes.OK).json({
     success: true,
-    data: {
-      subjects,
-    },
+    data: pageResponse(subjects, page, perPage),
   });
 };
 

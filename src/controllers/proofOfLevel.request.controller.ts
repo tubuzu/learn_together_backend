@@ -10,6 +10,7 @@ import { storage } from "../config/firebase.config.js";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { processFileMiddleware } from "../middlewares/upload.middleware.js";
 import { findAndUpdateUser } from "../service/user.service.js";
+import { pageResponse } from "../utils/response.util.js";
 
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
@@ -179,9 +180,7 @@ export const getAllUserProofOfLevelRequest = async (
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: {
-      requests,
-    },
+    data: pageResponse(requests, page, perPage),
   });
 };
 
@@ -210,9 +209,7 @@ export const getAllProofOfLevelRequest = async (
 
   return res.status(StatusCodes.CREATED).json({
     success: true,
-    data: {
-      requests,
-    },
+    data: pageResponse(requests, page, perPage),
   });
 };
 
@@ -244,9 +241,7 @@ export const getAllProofOfLevelRequestByUserId = async (
 
   return res.status(StatusCodes.CREATED).json({
     success: true,
-    data: {
-      requests,
-    },
+    data: pageResponse(requests, page, perPage),
   });
 };
 

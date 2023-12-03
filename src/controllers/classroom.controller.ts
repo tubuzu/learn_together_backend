@@ -8,8 +8,14 @@ import {
 } from "../models/classroom.model.js";
 import {
   ClassroomParams,
+  createKeywordByLocation,
+  createKeywordBySubjectAndState,
   findAndUpdateClassroom,
+  findClassroomById,
+  findClassrooms,
+  findClassroomsPaginate,
   findOneClassroom,
+  findUserCurrentClassrooms,
   terminateClassroom,
   updateClassroomState,
   updateClassroomStateInterval,
@@ -25,21 +31,19 @@ import { JoinRequestModel } from "../models/joinRequest.model.js";
 import { UserModel } from "../models/user.model.js";
 import { CustomAPIError } from "../errors/custom-api.error.js";
 // import cron from "node-cron";
-import { errorResponse, successResponse } from "../utils/response.util.js";
+import {
+  errorResponse,
+  pageResponse,
+  successResponse,
+} from "../utils/response.util.js";
 import { ForbiddenError } from "../errors/forbidden.error.js";
 import { ConflictError } from "../errors/conflict.error.js";
 import { InternalServerError } from "../errors/internal-server-error.error.js";
 import { createLocation } from "../service/location.service.js";
 
 import schedule from "node-schedule";
-import { date } from "zod";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 
-// Schedule a trigger to run every 5 seconds
-// cron.schedule("*/5 * * * * *", () => {
-//   // Call the update function
-//   updateClassroomState();
-// });
 const MAX_CLASSROOM_JOIN_LIMIT = 5;
 
 const scheduledTasks: any = [];
@@ -48,21 +52,20 @@ const scheduledTasks: any = [];
 //@route           GET /api/v1/classroom/search?subjectName=
 //@access          Public
 export const searchClassroom = async (req: Request, res: Response) => {
-  const keyword: any = {
-    isDeleted: false,
-  };
-  if (req.query.search)
-    keyword.subjectName = { $regex: req.query.search, $options: "i" };
+  const { search, state } = req.query;
+
+  // Gọi hàm createKeywordBySubjectAndState để tạo ra keyword
+  const keyword = createKeywordBySubjectAndState(search, state);
 
   const page = parseInt(req.query.page as string) || 1;
   const perPage = parseInt(req.query.perPage as string) || 10;
-  const classrooms = await ClassroomModel.find(keyword)
-    .populate("joinRequests")
-    .skip((page - 1) * perPage)
-    .limit(perPage);
+
+  // Gọi hàm findClassrooms để tìm kiếm lớp học
+  const classrooms = await findClassroomsPaginate(keyword, page, perPage);
+
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: { classrooms } }));
+    .json(successResponse({ data: pageResponse(classrooms, page, perPage) }));
 };
 
 //@description     Search classroom
@@ -75,36 +78,26 @@ export const searchClassroomOnMap = async (req: Request, res: Response) => {
     southLatBound,
     southLongBound,
     search,
+    state,
   } = req.query;
   if (!northLatBound || !northLongBound || !southLatBound || !southLongBound) {
     throw new BadRequestError("LatLngBounds required!");
   }
 
-  const keyword: any = {
-    location: {
-      $geoWithin: {
-        $geometry: {
-          type: "Polygon",
-          coordinates: [
-            [
-              [northLongBound, northLatBound],
-              [northLongBound, southLatBound],
-              [southLongBound, southLatBound],
-              [southLongBound, northLatBound],
-              [northLongBound, northLatBound],
-            ],
-          ],
-        },
-      },
-    },
-    isDeleted: false,
-  };
+  // Gọi hàm createKeywordByLocation để tạo ra keyword theo vị trí
+  const keyword = createKeywordByLocation(
+    northLatBound,
+    northLongBound,
+    southLatBound,
+    southLongBound
+  );
 
-  if (search) keyword.subjectName = { $regex: search, $options: "i" };
+  // Gọi hàm createKeywordBySubjectAndState để thêm điều kiện tìm kiếm theo tên môn học và trạng thái
+  Object.assign(keyword, createKeywordBySubjectAndState(search, state));
 
-  const classrooms = await ClassroomModel.find(
-    keyword as Record<string, any>
-  ).populate("joinRequests");
+  // Gọi hàm findClassrooms để tìm kiếm lớp học
+  const classrooms = await findClassrooms(keyword);
+
   return res
     .status(StatusCodes.OK)
     .json(successResponse({ data: { classrooms } }));
@@ -114,10 +107,8 @@ export const searchClassroomOnMap = async (req: Request, res: Response) => {
 //@route           GET /api/v1/classroom/:classroomId
 //@access          Public
 export const getClassroomById = async (req: Request, res: Response) => {
-  const classroom = await ClassroomModel.findOne({
-    _id: req.params.classroomId,
-    isDeleted: false,
-  }).populate("joinRequests");
+  // Gọi hàm findClassroomById để tìm kiếm lớp học theo id
+  const classroom = await findClassroomById(req.params.classroomId);
 
   return res
     .status(StatusCodes.OK)
@@ -128,25 +119,19 @@ export const getClassroomById = async (req: Request, res: Response) => {
 //@route           GET /api/v1/user/current/classroom
 //@access          Public
 export const getUserCurrentClassrooms = async (req: Request, res: Response) => {
-  const role = req.query.role;
-  let keyword: any = {
-    terminated: false,
-    currentParticipants: { $in: res.locals.userData.user },
-    isDeleted: false,
-  };
-  if (role == UserType.TUTOR) {
-    keyword.tutor = { $eq: res.locals.userData.user };
-  } else if (role == ClassroomMemberRole.OWNER) {
-    keyword.owner = { $eq: res.locals.userData.user };
-  }
+  const role = req.query.role as string;
+  const page = parseInt(req.query.page as string) || 1;
+  const perPage = parseInt(req.query.perPage as string) || 10;
 
-  const classrooms = await ClassroomModel.find(keyword).populate(
-    "joinRequests"
+  // Gọi hàm findUserCurrentClassrooms để tìm kiếm lớp học của người dùng hiện tại theo vai trò
+  const classrooms = await findUserCurrentClassrooms(
+    res.locals.userData.user,
+    role
   );
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: { classrooms } }));
+    .json(successResponse({ data: pageResponse(classrooms, page, perPage) }));
 };
 
 /**
@@ -730,6 +715,8 @@ export const getAllJoinRequestByClassroomId = async (
   res: Response
 ) => {
   const userId = res.locals.userData.user;
+  const page = parseInt(req.query.page as string) || 1;
+  const perPage = parseInt(req.query.perPage as string) || 10;
 
   let classroom = await ClassroomModel.findOne({
     _id: req.params.classroomId,
@@ -745,9 +732,7 @@ export const getAllJoinRequestByClassroomId = async (
 
   return res.status(StatusCodes.OK).json(
     successResponse({
-      data: {
-        requests: classroom.joinRequests,
-      },
+      data: pageResponse(classroom.joinRequests, page, perPage, true),
     })
   );
 };
@@ -918,6 +903,8 @@ export const updateClassroomOwner = async (req: Request, res: Response) => {
  */
 export const getUserClassroomHistory = async (req: Request, res: Response) => {
   const userId = res.locals.userData.user;
+  const page = parseInt(req.query.page as string) || 1;
+  const perPage = parseInt(req.query.perPage as string) || 10;
 
   const classrooms = await ClassroomModel.find({
     historyParticipants: { $in: userId },
@@ -926,9 +913,7 @@ export const getUserClassroomHistory = async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.OK).json(
     successResponse({
-      data: {
-        classrooms,
-      },
+      data: pageResponse(classrooms, page, perPage),
     })
   );
 };

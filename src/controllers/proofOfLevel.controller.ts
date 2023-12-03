@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { NotFoundError } from "../errors/not-found.error.js";
-import { findAndUpdateUser } from "../service/user.service.js";
+import { pageResponse } from "../utils/response.util.js";
 
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
@@ -19,9 +19,7 @@ export const getAllUserProofOfLevel = async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: {
-      proofs,
-    },
+    data: pageResponse(proofs, page, perPage),
   });
 };
 
@@ -63,9 +61,7 @@ export const getAllProofOfLevelByUserId = async (
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: {
-      proofs,
-    },
+    data: pageResponse(proofs, page, perPage),
   });
 };
 
