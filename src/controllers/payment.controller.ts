@@ -30,8 +30,7 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
 
   var createDate = moment(date).format("YYYYMMDDHHmmss");
   var orderId = moment(date).format("HHmmss");
-  date.setMinutes(date.getMinutes() + 15);
-  var expireDate = moment(date).format("YYYYMMDDHHmmss");
+  var expireDate = moment(date).add(15, 'minutes').format("YYYYMMDDHHmmss");
   var amount = req.body.amount;
   // var bankCode = req.body.bankCode;
 
