@@ -6,7 +6,7 @@ const paymentTransactionSchema =
     {
       package: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Subject",
+        ref: "CoinPackage",
         required: true,
       },
       user: {

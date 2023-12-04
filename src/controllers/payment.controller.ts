@@ -108,7 +108,7 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
         { orderId },
         { state: PaymentTransactionState.SUCCESS },
         { new: true }
-      );
+      ).populate("package");
       await addCoinToUser({
         userId: paymentTransaction.user,
         amountOfCoin: paymentTransaction.package.amountOfCoin,
