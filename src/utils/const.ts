@@ -29,7 +29,7 @@ export const ClassroomState = {
   WAITING: "WAITING",
   LEARNING: "LEARNING",
   FINISHED: "FINISHED",
-}
+};
 
 export const ClassroomMemberRole = {
   OWNER: "OWNER",
@@ -41,6 +41,12 @@ export const ParticipantRole = {
   OWNER: "OWNER",
   ADMINISTRATOR: "ADMINISTRATOR",
   MEMBER: "MEMBER",
+};
+
+export const PaymentTransactionState = {
+  WAITING: "WAITING",
+  SUCCESS: "SUCCESS",
+  FAILED: "FAILED",
 };
 
 export const accessTokenCookieOptions: CookieOptions = {

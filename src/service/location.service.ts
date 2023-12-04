@@ -1,9 +1,6 @@
-interface LocationParams {
-  longitude: any;
-  latitude: any;
-}
+import { CreateLocationParams } from "../interfaces/location.interface.js";
 
-export function createLocation({ longitude, latitude }: LocationParams) {
+export function createLocation({ longitude, latitude }: CreateLocationParams) {
   return longitude && latitude
     ? {
         type: "Point",

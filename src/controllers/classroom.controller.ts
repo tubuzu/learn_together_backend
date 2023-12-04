@@ -7,7 +7,6 @@ import {
   ClassroomModel,
 } from "../models/classroom.model.js";
 import {
-  ClassroomParams,
   createKeywordByLocation,
   createKeywordBySubjectAndState,
   findAndUpdateClassroom,
@@ -43,6 +42,7 @@ import { createLocation } from "../service/location.service.js";
 
 import schedule from "node-schedule";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
+import { ClassroomParams } from "../interfaces/classroom.interface.js";
 
 const MAX_CLASSROOM_JOIN_LIMIT = 5;
 

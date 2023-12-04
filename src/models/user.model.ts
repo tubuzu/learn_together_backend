@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema<UserDocument>(
         /^[9]+[7-8]+\d{8}$/,
         "Please provide a valid phone number: eg 9800000000",
       ],
-      default: null
+      default: null,
     },
     dateOfBirth: {
       type: Date,
@@ -56,6 +56,8 @@ const userSchema = new mongoose.Schema<UserDocument>(
     activityClass: { type: String, default: null },
     schoolName: { type: String, default: null },
     studyHardPoint: { type: Number, default: 0 },
+
+    currentCredit: { type: Number, default: 0 },
 
     // notifications: {
     //   type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
@@ -156,6 +158,8 @@ export interface UserDocument extends Document {
   activityClass: string;
   schoolName: string;
   studyHardPoint?: number;
+
+  currentCredit: number;
 
   // notifications?: string[];
 
