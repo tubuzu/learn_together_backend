@@ -44,7 +44,7 @@ export const ParticipantRole = {
 };
 
 export const PaymentTransactionState = {
-  WAITING: "WAITING",
+  PENDING: "PENDING",
   SUCCESS: "SUCCESS",
   FAILED: "FAILED",
 };

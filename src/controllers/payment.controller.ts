@@ -14,12 +14,13 @@ import crypto from "crypto";
 import { PaymentTransactionModel } from "../models/paymentTransaction.model.js";
 import { UserModel } from "../models/user.model.js";
 import { addCoinToUser } from "../service/user.service.js";
-
-
+import { PaymentTransactionState } from "src/utils/const.js";
 
 export const createPaymentUrl = async (req: Request, res: Response) => {
   const userId = res.locals.userData.user;
   const { packageId, ipAddr } = req.body;
+
+  const coinPackage = await CoinPackageModel.findById(packageId);
 
   var tmnCode = vnpConfig.vnp_TmnCode;
   var secretKey = vnpConfig.vnp_HashSecret;
@@ -30,15 +31,15 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
 
   var createDate = moment(date).format("YYYYMMDDHHmmss");
   var orderId = moment(date).format("HHmmss");
-  var expireDate = moment(date).add(15, 'minutes').format("YYYYMMDDHHmmss");
-  var amount = req.body.amount;
+  var expireDate = moment(date).add(15, "minutes").format("YYYYMMDDHHmmss");
+  var amount = coinPackage.priceInVND * 100;
 
   var orderInfo = req.body.orderDescription;
   var orderType = req.body.orderType;
   var locale = req.body.language;
-  if (locale === null || locale === "") {
-    locale = "vn";
-  }
+  // if (locale === null || locale === "") {
+  //   locale = "vn";
+  // }
   var currCode = "VND";
   var vnp_Params = {} as any;
   vnp_Params["vnp_Version"] = "2.1.0";
@@ -49,11 +50,11 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   vnp_Params["vnp_TxnRef"] = orderId;
   vnp_Params["vnp_OrderInfo"] = orderInfo;
   vnp_Params["vnp_OrderType"] = orderType;
-  vnp_Params["vnp_Amount"] = amount * 100;
+  vnp_Params["vnp_Amount"] = amount;
   vnp_Params["vnp_ReturnUrl"] = returnUrl;
   vnp_Params["vnp_IpAddr"] = ipAddr;
   vnp_Params["vnp_CreateDate"] = createDate;
-  vnp_Params["vnp_ExpireDate"] = expireDate;
+  // vnp_Params["vnp_ExpireDate"] = expireDate;
 
   vnp_Params = sortObject(vnp_Params);
 
@@ -99,16 +100,27 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
     paymentTransaction.responseCode = responseCode;
     await paymentTransaction.Save();
     if (responseCode == "00") {
-      var paymentTransaction = await PaymentTransactionModel.findOne({
-        orderId,
-      });
+      var paymentTransaction = await PaymentTransactionModel.findOneAndUpdate(
+        { orderId },
+        { state: PaymentTransactionState.SUCCESS },
+        { new: true }
+      );
       await addCoinToUser({
         userId: paymentTransaction.user,
         amountOfCoin: paymentTransaction.package.amountOfCoin,
       });
+    } else {
+      await PaymentTransactionModel.findOneAndUpdate(
+        { orderId },
+        { state: PaymentTransactionState.FAILED }
+      );
     }
     res.status(200).json({ RspCode: "00", Message: "success" });
   } else {
+    await PaymentTransactionModel.findOneAndUpdate(
+      { orderId },
+      { state: PaymentTransactionState.FAILED }
+    );
     res.status(200).json({ RspCode: "97", Message: "Fail checksum" });
   }
 };

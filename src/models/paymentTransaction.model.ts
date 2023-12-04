@@ -16,6 +16,11 @@ const paymentTransactionSchema =
       },
       orderId: { type: String, required: true },
       responseCode: { type: String },
+      state: {
+        type: String,
+        enum: Object.values(PaymentTransactionState),
+        default: PaymentTransactionState.PENDING,
+      },
 
       isDeleted: { type: Boolean, default: false },
       deletedAt: { type: Date, default: null },
