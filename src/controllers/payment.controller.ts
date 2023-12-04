@@ -113,6 +113,7 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
         userId: paymentTransaction.user,
         amountOfCoin: paymentTransaction.package.amountOfCoin,
       });
+      console.log(paymentTransaction.package.amountOfCoin);
     } else {
       await PaymentTransactionModel.findOneAndUpdate(
         { orderId },
@@ -146,8 +147,9 @@ export const vnpUrlReturn = async (req: Request, res: Response) => {
   var hmac = crypto.createHmac("sha512", secretKey);
   var signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
-  if (secureHash === signed) {
-    res.status(StatusCodes.OK).json(successResponse({ message: "Success" }));
+  var responseCode = vnp_Params["vnp_ResponseCode"];
+  if (secureHash === signed && responseCode == "00") {
+      res.status(StatusCodes.OK).json(successResponse({ message: "Success" }));
   } else {
     res
       .status(StatusCodes.BAD_REQUEST)
