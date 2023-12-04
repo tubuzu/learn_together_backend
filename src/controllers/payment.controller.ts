@@ -14,7 +14,7 @@ import crypto from "crypto";
 import { PaymentTransactionModel } from "../models/paymentTransaction.model.js";
 import { UserModel } from "../models/user.model.js";
 import { addCoinToUser } from "../service/user.service.js";
-import { PaymentTransactionState } from "src/utils/const.js";
+import { PaymentTransactionState } from "../utils/const.js";
 
 export const createPaymentUrl = async (req: Request, res: Response) => {
   const userId = res.locals.userData.user;
@@ -35,7 +35,9 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   var amount = coinPackage.priceInVND * 100;
 
   var orderInfo = req.body.orderDescription;
+  if (orderInfo === null) orderInfo = "";
   var orderType = req.body.orderType;
+  if (orderType === null) orderType = 260000;
   var locale = req.body.language;
   // if (locale === null || locale === "") {
   //   locale = "vn";
@@ -61,8 +63,10 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   var signData = querystring.stringify(vnp_Params, { encode: false });
   var hmac = crypto.createHmac("sha512", secretKey);
   var signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
-  vnp_Params["vnp_SecureHash"] = signed;
-  vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
+  // vnp_Params["vnp_SecureHash"] = signed;
+  signData += "&vnp_SecureHash=" + signed;
+  // vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
+  vnpUrl += "?" + signData;
 
   const paymentTransaction = await createTransaction({
     package: packageId,
