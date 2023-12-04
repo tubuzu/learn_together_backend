@@ -1,7 +1,7 @@
 import express from "express";
 import {
   createSubject,
-  deleteSubject,
+  // deleteSubject,
   getSubjectById,
   searchSubject,
   updateSubject,
@@ -20,6 +20,6 @@ subjectRoutes
 subjectRoutes
   .route("/admin/subject/:subjectId")
   .patch([deserializeAdmin, requireUser], updateSubject);
-subjectRoutes
-  .route("/admin/subject/:subjectId")
-  .delete([deserializeAdmin, requireUser], deleteSubject);
+// subjectRoutes
+//   .route("/admin/subject/:subjectId")
+//   .delete([deserializeAdmin, requireUser], deleteSubject);

@@ -65,25 +65,25 @@ export const getAllProofOfLevelByUserId = async (
   });
 };
 
-//@description     Get or Search all tutors
-//@route           GET /api/v1/tutor?search=&subjectId=
-//@access          Public
-export const deleteProofOfLevel = async (req: Request, res: Response) => {
-  const { proofOfLevelId } = req.body as any;
+// //@description     Get or Search all tutors
+// //@route           GET /api/v1/tutor?search=&subjectId=
+// //@access          Public
+// export const deleteProofOfLevel = async (req: Request, res: Response) => {
+//   const { proofOfLevelId } = req.body as any;
 
-  let proof = await ProofOfLevelModel.findOne({
-    _id: proofOfLevelId,
-    isDeleted: false,
-  });
+//   let proof = await ProofOfLevelModel.findOne({
+//     _id: proofOfLevelId,
+//     isDeleted: false,
+//   });
 
-  if (!proof) {
-    throw new NotFoundError("Proof of level not found!");
-  }
+//   if (!proof) {
+//     throw new NotFoundError("Proof of level not found!");
+//   }
 
-  await proof.delete();
+//   await proof.delete();
 
-  return res.status(StatusCodes.CREATED).json({
-    success: true,
-    message: "Request rejected!",
-  });
-};
+//   return res.status(StatusCodes.CREATED).json({
+//     success: true,
+//     message: "Request rejected!",
+//   });
+// };

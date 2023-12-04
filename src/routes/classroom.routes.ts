@@ -6,7 +6,7 @@ import {
   leaveClassroom,
   rejectJoinRequest,
   createClassroom,
-  deleteClassroom,
+  // deleteClassroom,
   endClassroom,
   getClassroomById,
   getUserCurrentClassrooms,
@@ -125,8 +125,8 @@ classroomRoutes.patch(
 );
 
 //admin
-classroomRoutes.delete(
-  "/admin/classroom/delete/:classroomId",
-  [deserializeAdmin, requireUser],
-  deleteClassroom
-);
+// classroomRoutes.delete(
+//   "/admin/classroom/delete/:classroomId",
+//   [deserializeAdmin, requireUser],
+//   deleteClassroom
+// );

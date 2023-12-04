@@ -127,21 +127,21 @@ export const updateSubject = async (req: Request, res: Response) => {
   } else return res.status(StatusCodes.OK);
 };
 
-/**
- * @description Update subject
- * @route GET /api/v1/admin/subject/delete?subjectId=
- */
-export const deleteSubject = async (req: Request, res: Response) => {
-  const subject = await SubjectModel.findById(req.params.subjectId);
+// /**
+//  * @description Update subject
+//  * @route GET /api/v1/admin/subject/delete?subjectId=
+//  */
+// export const deleteSubject = async (req: Request, res: Response) => {
+//   const subject = await SubjectModel.findById(req.params.subjectId);
 
-  if (!subject) {
-    throw new NotFoundError("Subject not found!");
-  }
+//   if (!subject) {
+//     throw new NotFoundError("Subject not found!");
+//   }
 
-  subject.delete();
+//   subject.delete();
 
-  return res.status(StatusCodes.OK).json({
-    success: true,
-    message: "Subject deleted!",
-  });
-};
+//   return res.status(StatusCodes.OK).json({
+//     success: true,
+//     message: "Subject deleted!",
+//   });
+// };

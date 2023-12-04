@@ -5,7 +5,7 @@ import {
   requireUser,
 } from "../middlewares/auth.middleware.js";
 import {
-  deleteProofOfLevel,
+  // deleteProofOfLevel,
   getProofOfLevelById,
   getAllUserProofOfLevel,
   getAllProofOfLevelByUserId,
@@ -24,8 +24,8 @@ proofOfLevelRoutes
   .route("/user/proof-of-level")
   .get(getAllProofOfLevelByUserId);
 
-//Admin
-proofOfLevelRoutes
-  .route("/admin/proof-of-level")
-  .delete([deserializeAdmin, requireUser], deleteProofOfLevel);
+// //Admin
+// proofOfLevelRoutes
+//   .route("/admin/proof-of-level")
+//   .delete([deserializeAdmin, requireUser], deleteProofOfLevel);
 

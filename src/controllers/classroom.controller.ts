@@ -583,24 +583,24 @@ export const endClassroom = async (req: Request, res: Response) => {
   return res.status(StatusCodes.OK).json(successResponse({ data: classroom }));
 };
 
-/**
- * @description Delete classroom
- * @route Delete /api/v1/admin/classroom/delete?classroomId=
- */
-export const deleteClassroom = async (req: Request, res: Response) => {
-  let classroom = await ClassroomModel.findOne({
-    _id: req.params.classroomId, // Lọc theo _id
-    isDeleted: false,
-  });
+// /**
+//  * @description Delete classroom
+//  * @route Delete /api/v1/admin/classroom/delete?classroomId=
+//  */
+// export const deleteClassroom = async (req: Request, res: Response) => {
+//   let classroom = await ClassroomModel.findOne({
+//     _id: req.params.classroomId, // Lọc theo _id
+//     isDeleted: false,
+//   });
 
-  if (!classroom) throw new NotFoundError("Classroom not found!");
+//   if (!classroom) throw new NotFoundError("Classroom not found!");
 
-  await classroom.delete();
+//   await classroom.delete();
 
-  return res
-    .status(StatusCodes.OK)
-    .json(successResponse({ message: "Classroom deleted!" }));
-};
+//   return res
+//     .status(StatusCodes.OK)
+//     .json(successResponse({ message: "Classroom deleted!" }));
+// };
 
 /**
  * @description Accept join request

@@ -32,7 +32,6 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   var orderId = moment(date).format("HHmmss");
   var expireDate = moment(date).add(15, 'minutes').format("YYYYMMDDHHmmss");
   var amount = req.body.amount;
-  // var bankCode = req.body.bankCode;
 
   var orderInfo = req.body.orderDescription;
   var orderType = req.body.orderType;
@@ -55,9 +54,6 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   vnp_Params["vnp_IpAddr"] = ipAddr;
   vnp_Params["vnp_CreateDate"] = createDate;
   vnp_Params["vnp_ExpireDate"] = expireDate;
-  // if (bankCode !== null && bankCode !== "") {
-  //   vnp_Params["vnp_BankCode"] = bankCode;
-  // }
 
   vnp_Params = sortObject(vnp_Params);
 
