@@ -107,7 +107,7 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
   if (secureHash === signed) {
     if (responseCode == "00") {
       rechargeOrder.state = PaymentTransactionState.SUCCESS;
-      await rechargeOrder.Save();
+      await rechargeOrder.save();
       await addCoinToUser({
         userId: rechargeOrder.user,
         amountOfCoin: rechargeOrder.package.amountOfCoin,
