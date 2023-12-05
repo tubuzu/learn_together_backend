@@ -1,4 +1,4 @@
-import { PaymentTransactionState } from "src/utils/const.js";
+import { PaymentTransactionState } from "../utils/const.js";
 import { CreateDonateOrderParams } from "../interfaces/donateOrder.interface.js";
 import { DonateOrderModel } from "../models/donateOrder.model.js";
 
