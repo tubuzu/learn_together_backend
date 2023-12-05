@@ -98,13 +98,13 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
   var hmac = crypto.createHmac("sha512", secretKey);
   var signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
+  var orderId = vnp_Params["vnp_TxnRef"];
+  var responseCode = vnp_Params["vnp_ResponseCode"];
+  var rechargeOrder = await RechargeOrderModel.findOne({ orderId }).populate(
+    "package"
+  );
+  rechargeOrder.responseCode = responseCode;
   if (secureHash === signed) {
-    var orderId = vnp_Params["vnp_TxnRef"];
-    var responseCode = vnp_Params["vnp_ResponseCode"];
-    var rechargeOrder = await RechargeOrderModel.findOne({ orderId }).populate(
-      "package"
-    );
-    rechargeOrder.responseCode = responseCode;
     if (responseCode == "00") {
       rechargeOrder.state = PaymentTransactionState.SUCCESS;
       await rechargeOrder.Save();
@@ -115,12 +115,12 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
       console.log(rechargeOrder.package.amountOfCoin);
     } else {
       rechargeOrder.state = PaymentTransactionState.FAILED;
-      await rechargeOrder.Save();
+      await rechargeOrder.save();
     }
     res.status(200).json({ RspCode: "00", Message: "success" });
   } else {
     rechargeOrder.state = PaymentTransactionState.FAILED;
-    await rechargeOrder.Save();
+    await rechargeOrder.save();
     res.status(200).json({ RspCode: "97", Message: "Fail checksum" });
   }
 };
