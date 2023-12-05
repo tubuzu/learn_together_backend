@@ -103,25 +103,34 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
   var rechargeOrder = await RechargeOrderModel.findOne({ orderId }).populate(
     "package"
   );
-  rechargeOrder.responseCode = responseCode;
+
+  var orderNeedToBeHandle =
+    rechargeOrder.state === PaymentTransactionState.PENDING;
+
   if (secureHash === signed) {
-    if (responseCode == "00") {
-      rechargeOrder.state = PaymentTransactionState.SUCCESS;
-      await rechargeOrder.save();
-      await addCoinToUser({
-        userId: rechargeOrder.user,
-        amountOfCoin: rechargeOrder.package.amountOfCoin,
-      });
-      console.log(rechargeOrder.package.amountOfCoin);
-    } else {
-      rechargeOrder.state = PaymentTransactionState.FAILED;
-      await rechargeOrder.save();
+    if (orderNeedToBeHandle) {
+      if (responseCode == "00") {
+        rechargeOrder.state = PaymentTransactionState.SUCCESS;
+        await addCoinToUser({
+          userId: rechargeOrder.user,
+          amountOfCoin: rechargeOrder.package.amountOfCoin,
+        });
+        console.log(rechargeOrder.package.amountOfCoin);
+      } else {
+        rechargeOrder.state = PaymentTransactionState.FAILED;
+      }
     }
     res.status(200).json({ RspCode: "00", Message: "success" });
   } else {
-    rechargeOrder.state = PaymentTransactionState.FAILED;
-    await rechargeOrder.save();
+    if (orderNeedToBeHandle) {
+      rechargeOrder.state = PaymentTransactionState.FAILED;
+    }
     res.status(200).json({ RspCode: "97", Message: "Fail checksum" });
+  }
+
+  if (orderNeedToBeHandle) {
+    rechargeOrder.responseCode = responseCode;
+    await rechargeOrder.save();
   }
 };
 
