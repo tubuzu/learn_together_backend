@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { startSession } from "mongoose";
-import { DonateOrderModel } from "src/models/donateOrder.model.js";
-import { UserModel } from "src/models/user.model.js";
-import { createDonateOrder } from "src/service/donate.service.js";
-import { addCoinToUser, deductCoinFromUser } from "src/service/user.service.js";
-import { PaymentTransactionState } from "src/utils/const.js";
-import { sendEmail } from "src/utils/emailSender.js";
-import { generateOTP } from "src/utils/generateOtp.js";
-import { errorResponse, successResponse } from "src/utils/response.util.js";
+import { DonateOrderModel } from "../models/donateOrder.model.js";
+import { UserModel } from "../models/user.model.js";
+import { createDonateOrder } from "../service/donate.service.js";
+import { addCoinToUser, deductCoinFromUser } from "../service/user.service.js";
+import { PaymentTransactionState } from "../utils/const.js";
+import { sendEmail } from "../utils/emailSender.js";
+import { generateOTP } from "../utils/generateOtp.js";
+import { errorResponse, successResponse } from "../utils/response.util.js";
 
 const OTP_EXPIRE_TIME_MINUTE = 15 * 60 * 1000;
 
