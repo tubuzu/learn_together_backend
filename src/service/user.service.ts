@@ -4,7 +4,10 @@ import qs from "qs";
 import { UserDocument, UserModel } from "../models/user.model.js";
 import omit from "lodash/omit.js";
 import { CustomAPIError } from "../errors/custom-api.error.js";
-import { AddCoinParams } from "../interfaces/user.interface.js";
+import {
+  AddCoinParams,
+  DeductCoinParams,
+} from "../interfaces/user.interface.js";
 
 export async function validateUserPassword({
   email,
@@ -113,8 +116,25 @@ export async function findUser(query: FilterQuery<UserDocument>) {
   return UserModel.findOne(query).lean();
 }
 
-export const addCoinToUser = async (request: AddCoinParams) => {
-  await UserModel.findByIdAndUpdate(request.userId, {
-    $inc: { currentCredit: request.amountOfCoin },
-  });
+export const addCoinToUser = async (request: AddCoinParams, option?: any) => {
+  return await UserModel.findByIdAndUpdate(
+    request.userId,
+    {
+      $inc: { currentCredit: request.amountOfCoin },
+    },
+    option || {}
+  );
+};
+
+export const deductCoinFromUser = async (
+  request: DeductCoinParams,
+  option?: any
+) => {
+  return await UserModel.findByIdAndUpdate(
+    request.userId,
+    {
+      $dec: { currentCredit: request.amountOfCoin },
+    },
+    option || {}
+  );
 };

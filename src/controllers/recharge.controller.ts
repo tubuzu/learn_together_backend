@@ -8,10 +8,10 @@ import {
 } from "../utils/response.util.js";
 import { vnpConfig } from "../config/vnp.config.js";
 import moment from "moment";
-import { createTransaction } from "../service/paymentTransaction.service.js";
+import { createTransaction } from "../service/recharge.service.js";
 import querystring from "qs";
 import crypto from "crypto";
-import { PaymentTransactionModel } from "../models/paymentTransaction.model.js";
+import { RechargeOrderModel } from "../models/rechargeOrder.model.js";
 import { UserModel } from "../models/user.model.js";
 import { addCoinToUser } from "../service/user.service.js";
 import { PaymentTransactionState } from "../utils/const.js";
@@ -68,7 +68,7 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   // vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
   vnpUrl += "?" + signData;
 
-  const paymentTransaction = await createTransaction({
+  const rechargeOrder = await createTransaction({
     package: packageId,
     orderId,
     user: userId,
@@ -77,7 +77,7 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json(
     successResponse({
       data: {
-        paymentTransactionId: paymentTransaction._id,
+        rechargeOrderId: rechargeOrder._id,
         packageId,
         url: vnpUrl,
       },
@@ -101,31 +101,26 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
   if (secureHash === signed) {
     var orderId = vnp_Params["vnp_TxnRef"];
     var responseCode = vnp_Params["vnp_ResponseCode"];
-    paymentTransaction.responseCode = responseCode;
-    await paymentTransaction.Save();
+    var rechargeOrder = await RechargeOrderModel.findOne({ orderId }).populate(
+      "package"
+    );
+    rechargeOrder.responseCode = responseCode;
     if (responseCode == "00") {
-      var paymentTransaction = await PaymentTransactionModel.findOneAndUpdate(
-        { orderId },
-        { state: PaymentTransactionState.SUCCESS },
-        { new: true }
-      ).populate("package");
+      rechargeOrder.state = PaymentTransactionState.SUCCESS;
+      await rechargeOrder.Save();
       await addCoinToUser({
-        userId: paymentTransaction.user,
-        amountOfCoin: paymentTransaction.package.amountOfCoin,
+        userId: rechargeOrder.user,
+        amountOfCoin: rechargeOrder.package.amountOfCoin,
       });
-      console.log(paymentTransaction.package.amountOfCoin);
+      console.log(rechargeOrder.package.amountOfCoin);
     } else {
-      await PaymentTransactionModel.findOneAndUpdate(
-        { orderId },
-        { state: PaymentTransactionState.FAILED }
-      );
+      rechargeOrder.state = PaymentTransactionState.FAILED;
+      await rechargeOrder.Save();
     }
     res.status(200).json({ RspCode: "00", Message: "success" });
   } else {
-    await PaymentTransactionModel.findOneAndUpdate(
-      { orderId },
-      { state: PaymentTransactionState.FAILED }
-    );
+    rechargeOrder.state = PaymentTransactionState.FAILED;
+    await rechargeOrder.Save();
     res.status(200).json({ RspCode: "97", Message: "Fail checksum" });
   }
 };
@@ -149,7 +144,7 @@ export const vnpUrlReturn = async (req: Request, res: Response) => {
 
   var responseCode = vnp_Params["vnp_ResponseCode"];
   if (secureHash === signed && responseCode == "00") {
-      res.status(StatusCodes.OK).json(successResponse({ message: "Success" }));
+    res.status(StatusCodes.OK).json(successResponse({ message: "Success" }));
   } else {
     res
       .status(StatusCodes.BAD_REQUEST)

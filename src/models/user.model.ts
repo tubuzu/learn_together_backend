@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema<UserDocument>(
     schoolName: { type: String, default: null },
     studyHardPoint: { type: Number, default: 0 },
 
-    currentCredit: { type: Number, default: 0 },
+    currentCredit: { type: Number, default: 0, select: false },
 
     // notifications: {
     //   type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],

@@ -1,8 +1,8 @@
 import mongoose, { Document } from "mongoose";
 import { PaymentTransactionState } from "../utils/const.js";
 
-const paymentTransactionSchema =
-  new mongoose.Schema<PaymentTransactionDocument>(
+const rechargeOrderSchema =
+  new mongoose.Schema<RechargeOrderDocument>(
     {
       package: {
         type: mongoose.Schema.Types.ObjectId,
@@ -28,18 +28,18 @@ const paymentTransactionSchema =
     { timestamps: true }
   );
 
-paymentTransactionSchema.methods.delete = async function () {
+rechargeOrderSchema.methods.delete = async function () {
   this.isDeleted = true;
   this.deletedAt = new Date();
   return this.save();
 };
 
-export const PaymentTransactionModel = mongoose.model(
-  "PaymentTransaction",
-  paymentTransactionSchema
+export const RechargeOrderModel = mongoose.model(
+  "RechargeOrder",
+  rechargeOrderSchema
 );
 
-export interface PaymentTransactionDocument extends Document {
+export interface RechargeOrderDocument extends Document {
   amountOfCoin: number;
   priceInVND: number;
   description: string;
@@ -47,8 +47,4 @@ export interface PaymentTransactionDocument extends Document {
 
   isDeleted: boolean;
   deletedAt?: Date;
-
-  matchPassword: (pw: string) => Promise<boolean>;
-  createAccessToken: (sessionId: string) => string;
-  createRefreshToken: (sessionId: string) => string;
 }

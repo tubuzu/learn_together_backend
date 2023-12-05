@@ -1,4 +1,4 @@
-export interface CreatePaymentTransactionParams
+export interface CreateRechargeOrderParams
 {
     package: string,
     user: string,

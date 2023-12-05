@@ -7,11 +7,11 @@ import {
   createPaymentUrl,
   vnpUrlIpn,
   vnpUrlReturn,
-} from "../controllers/payment.controller.js";
-export const paymentRoutes = express.Router();
+} from "../controllers/recharge.controller.js";
+export const rechargeRoutes = express.Router();
 
-paymentRoutes
+rechargeRoutes
   .route("/create_payment_url")
   .post([deserializeUser, requireUser], createPaymentUrl);
-paymentRoutes.route("/vnp_ipn").get(vnpUrlIpn);
-paymentRoutes.route("/vnp_return").get(vnpUrlReturn);
+rechargeRoutes.route("/vnp_ipn").get(vnpUrlIpn);
+rechargeRoutes.route("/vnp_return").get(vnpUrlReturn);
