@@ -133,7 +133,7 @@ export const deductCoinFromUser = async (
   return await UserModel.findByIdAndUpdate(
     request.userId,
     {
-      $dec: { currentCredit: request.amountOfCoin },
+      $inc: { currentCredit: -request.amountOfCoin },
     },
     option || {}
   );

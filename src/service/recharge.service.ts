@@ -6,3 +6,14 @@ export const createTransaction = async (
 ) => {
   return await RechargeOrderModel.create(request);
 };
+
+export const findRechargeOrderPaginate = async (
+  keyword: any,
+  page: number,
+  perPage: number
+) => {
+  const classrooms = await RechargeOrderModel.find(keyword)
+    .skip((page - 1) * perPage)
+    .limit(perPage);
+  return classrooms;
+};

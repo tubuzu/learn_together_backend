@@ -14,11 +14,11 @@ const transporter = nodemailer.createTransport({
 /**
  * Send email using nodemailer transporter GMAIL
  */
-export const sendEmail = async (to: string, from: string, subject: string, body: string) => {
+export const sendEmail = async (to: string, subject: string, body: string) => {
     try {
         await transporter.sendMail({
             to: to,
-            from: from,
+            from: process.env.EMAIL_USER as string,
             subject: subject,
             html: body,
         });

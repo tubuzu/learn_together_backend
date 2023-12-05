@@ -57,7 +57,6 @@ export const registerUser = async (req: Request, res: Response) => {
 
   // send email with token link
   const to = email;
-  const from = process.env.EMAIL_USER as string;
   const subject = "Email Verification Link";
   const body = `
             <p> Hello ${user.firstName} ${user.lastName},</p>
@@ -66,7 +65,7 @@ export const registerUser = async (req: Request, res: Response) => {
             <p>Regards,</p>
             <p>Team Learn Together</p>
         `;
-  await sendEmail(to, from, subject, body);
+  await sendEmail(to, subject, body);
 
   // create student
   // const student = await StudentModel.create({
@@ -335,7 +334,6 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
 
   // send email with token code
   const to = email;
-  const from = process.env.EMAIL_USER as string;
   const subject = "Email Verification Link";
   const body = `
         <p> Hello ${user.firstName} ${user.lastName},</p>
@@ -346,7 +344,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
         `;
 
   // send email with token link
-  await sendEmail(to, from, subject, body);
+  await sendEmail(to, subject, body);
 
   return res.status(StatusCodes.OK).json({
     success: true,
@@ -419,7 +417,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
   // send email with token
   const to = email;
-  const from = process.env.EMAIL_USER as string;
   const subject = "Reset Account Password Link";
   const body = `
     <h3>Please click the link below to reset your password</h3>
@@ -436,7 +433,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     } else {
       //if no error
       //send email
-      await sendEmail(to, from, subject, body);
+      await sendEmail(to, subject, body);
       return res.status(StatusCodes.OK).json({
         success: true,
         message: `Token has been sent to ${email}`,
@@ -480,7 +477,6 @@ export const resetPassword = async (req: Request, res: Response) => {
 
   // send email with token
   const to = user.email;
-  const from = process.env.EMAIL_USER as string;
   const subject = "Account Password Reset Successfully";
   const body = `
     <h3>Here's your new password: <b>${newPassword}</b></h3>`;
@@ -492,7 +488,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         message: "Error occurred while resetting password",
       });
     } else {
-      await sendEmail(to, from, subject, body);
+      await sendEmail(to, subject, body);
       return res.status(StatusCodes.OK).json({
         success: true,
         message: "Password successfully changed",

@@ -78,6 +78,7 @@ app.use("/api/v1", proofOfLevelRequestRoutes);
 app.use("/api/v1", classroomRoutes);
 app.use("/api/v1", subjectRoutes);
 app.use("/api/v1", rechargeRoutes);
+app.use("/api/v1", donateRoutes);
 app.use("/api/v1", coinPackageRoutes);
 
 // Error Handling middlewares
@@ -96,6 +97,7 @@ import cron from "node-cron";
 import https from "https";
 import { rechargeRoutes } from "./routes/recharge.routes.js";
 import { coinPackageRoutes } from "./routes/coinPackage.routes.js";
+import { donateRoutes } from "./routes/donate.routes.js";
 cron.schedule("*/14 * * * *", () => {
   https
     .get(`${process.env.SERVER_ENDPOINT_PROD!}/test`, (res: any) => {
