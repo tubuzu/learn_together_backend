@@ -117,6 +117,8 @@ export const resendDonationOTP = async (req: Request, res: Response) => {
   let now = moment();
   let lastOtpUpdateTime = moment(donateOrder.lastOtpUpdateTime);
   let difference = now.diff(lastOtpUpdateTime, "minutes");
+  // console.log(now.format("HHmmss"));
+  // console.log(lastOtpUpdateTime.format("HHmmss"));
   if (difference < OTP_RESET_TIME_MINUTE) {
     return res.status(StatusCodes.BAD_REQUEST).json(
       errorResponse({

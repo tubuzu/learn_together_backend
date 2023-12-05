@@ -9,7 +9,7 @@ import {
 import { vnpConfig } from "../config/vnp.config.js";
 import moment from "moment";
 import {
-  createTransaction,
+  createRechargeOrder,
   findRechargeOrderPaginate,
 } from "../service/recharge.service.js";
 import querystring from "qs";
@@ -71,7 +71,7 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   // vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
   vnpUrl += "?" + signData;
 
-  const rechargeOrder = await createTransaction({
+  const rechargeOrder = await createRechargeOrder({
     package: packageId,
     orderId,
     user: userId,

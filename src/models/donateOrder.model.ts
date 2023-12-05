@@ -15,7 +15,7 @@ const donateOrderSchema = new mongoose.Schema<DonateOrderDocument>(
     },
     amountOfCoin: { type: Number, required: true },
     otpCode: { type: String, required: true },
-    lastOtpUpdateTime: { type: Date },
+    lastOtpUpdateTime: { type: Date, default: Date.now() },
     otpRequestLeft: { type: Number, default: 3 },
     state: {
       type: String,
