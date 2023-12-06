@@ -261,10 +261,7 @@ export const searchUserDonateOrder = async (req: Request, res: Response) => {
   const perPage = parseInt(req.query.perPage as string) || 10;
 
   const keyword: any = {
-    $or: {
-      sender: userId,
-      receiver: userId,
-    },
+    $or: [{ sender: userId }, { receiver: userId }],
     isDeleted: false,
   };
 

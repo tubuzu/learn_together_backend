@@ -34,8 +34,8 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
 
   var createDate = moment(date).format("YYYYMMDDHHmmss");
   var orderId = moment(date).format("HHmmss");
-  var expireDate = moment(date).add(15, "minutes").format("YYYYMMDDHHmmss");
-  var amount = coinPackage.priceInVND * 100;
+  var expireDate = moment(date).add(5, "minutes").format("YYYYMMDDHHmmss");
+  var amount = coinPackage.priceInVND * (100 - coinPackage.discount);
 
   var orderInfo = req.body.orderDescription;
   if (orderInfo === null) orderInfo = "";
@@ -59,17 +59,17 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   vnp_Params["vnp_ReturnUrl"] = returnUrl;
   vnp_Params["vnp_IpAddr"] = ipAddr;
   vnp_Params["vnp_CreateDate"] = createDate;
-  // vnp_Params["vnp_ExpireDate"] = expireDate;
+  vnp_Params["vnp_ExpireDate"] = expireDate;
 
   vnp_Params = sortObject(vnp_Params);
 
   var signData = querystring.stringify(vnp_Params, { encode: false });
   var hmac = crypto.createHmac("sha512", secretKey);
   var signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
-  // vnp_Params["vnp_SecureHash"] = signed;
-  signData += "&vnp_SecureHash=" + signed;
-  // vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
-  vnpUrl += "?" + signData;
+  vnp_Params["vnp_SecureHash"] = signed;
+  // signData += "&vnp_SecureHash=" + signed;
+  vnpUrl += "?" + querystring.stringify(vnp_Params, { encode: false });
+  // vnpUrl += "?" + signData;
 
   const rechargeOrder = await createRechargeOrder({
     package: packageId,
