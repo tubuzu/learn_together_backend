@@ -229,10 +229,7 @@ export const googleOauthHandler = async (req: Request, res: Response) => {
  * @route POST /api/v1/logout
  */
 export const logoutUser = async (req: Request, res: Response) => {
-  const cookies = req.cookies;
-  if (!cookies?.accessToken && !cookies?.refreshToken) {
-    throw new BadRequestError("Token not found");
-  }
+  res.setHeader("authorization", "");
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
 
