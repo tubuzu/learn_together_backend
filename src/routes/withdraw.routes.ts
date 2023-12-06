@@ -9,13 +9,14 @@ import {
   cancelWithdrawOrder,
   createWithdrawOrder,
   rejectWithdrawOrder,
+  searchUserWithdrawOrder,
   searchWithdrawOrder,
-} from "src/controllers/withdraw.controller.js";
+} from "../controllers/withdraw.controller.js";
 export const withdrawRoutes = express.Router();
 
 withdrawRoutes
-  .route("/withdraw/search")
-  .get([deserializeUser, requireUser], searchWithdrawOrder);
+  .route("/user/withdraw/search")
+  .get([deserializeUser, requireUser], searchUserWithdrawOrder);
 withdrawRoutes
   .route("/withdraw/create")
   .post([deserializeUser, requireUser], createWithdrawOrder);
@@ -29,3 +30,6 @@ withdrawRoutes
 withdrawRoutes
   .route("/withdraw/reject")
   .post([deserializeAdmin, requireUser], rejectWithdrawOrder);
+withdrawRoutes
+  .route("/withdraw/search")
+  .get([deserializeAdmin, requireUser], searchWithdrawOrder);

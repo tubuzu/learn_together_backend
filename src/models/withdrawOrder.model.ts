@@ -9,7 +9,9 @@ const withdrawOrderSchema = new mongoose.Schema<WithdrawOrderDocument>(
       required: true,
     },
     amountOfCoin: { type: Number, required: true },
-    description: { type: String, default: null },
+    bankName: { type: String, required: true },
+    bankAccountCode: { type: String, required: true },
+    bankAccountName: { type: String, required: true },
     state: {
       type: String,
       enum: Object.values(PaymentTransactionState),
@@ -37,7 +39,9 @@ export interface WithdrawOrderDocument extends Document {
   sender: string;
   receiver: string;
   amountOfCoin: number;
-  description: string;
+  bankName: string;
+  bankAccountCode: string;
+  bankAccountName: string;
   state: string;
 
   isDeleted: boolean;

@@ -1,13 +1,20 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { UserModel } from "src/models/user.model.js";
-import { WithdrawOrderModel } from "src/models/withdrawOrder.model.js";
-import { findWithdrawOrderPaginate } from "src/service/withdraw.service.js";
-import { PaymentTransactionState } from "src/utils/const.js";
-import { errorResponse, pageResponse, successResponse } from "src/utils/response.util.js";
+import { UserModel } from "../models/user.model.js";
+import { WithdrawOrderModel } from "../models/withdrawOrder.model.js";
+import {
+  createWithdrawOrderService,
+  findWithdrawOrderPaginate,
+} from "../service/withdraw.service.js";
+import { PaymentTransactionState } from "../utils/const.js";
+import {
+  errorResponse,
+  pageResponse,
+  successResponse,
+} from "../utils/response.util.js";
 
 export const createWithdrawOrder = async (req: Request, res: Response) => {
-  const { amountOfCoin, description } = req.body;
+  const { amountOfCoin, bankName, bankAccountCode, bankAccountName } = req.body;
   const userId = res.locals.userData.user;
   const user = await UserModel.findById(userId).select("+currentCredit");
   if (user.currentCredit < amountOfCoin) {
@@ -19,10 +26,12 @@ export const createWithdrawOrder = async (req: Request, res: Response) => {
     );
   }
 
-  const order = await WithdrawOrderModel.create({
+  const order = await createWithdrawOrderService({
     user: userId,
     amountOfCoin,
-    description,
+    bankName,
+    bankAccountCode,
+    bankAccountName,
   });
 
   await UserModel.findByIdAndUpdate(userId, {

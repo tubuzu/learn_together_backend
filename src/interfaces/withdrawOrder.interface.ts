@@ -2,5 +2,7 @@ export interface CreateWithdrawOrderParams
 {
     user: string,
     amountOfCoin: number,
-    description?: string,
+    bankName: string,
+    bankAccountCode: string,
+    bankAccountName: string,
 }

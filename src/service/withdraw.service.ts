@@ -1,8 +1,8 @@
-import { WithdrawOrderModel } from "src/models/withdrawOrder.model.js";
+import { WithdrawOrderModel } from "../models/withdrawOrder.model.js";
 import { PaymentTransactionState } from "../utils/const.js";
-import { CreateWithdrawOrderParams } from "src/interfaces/withdrawOrder.interface.js";
+import { CreateWithdrawOrderParams } from "../interfaces/withdrawOrder.interface.js";
 
-export const createWithdrawOrder = async (request: CreateWithdrawOrderParams) => {
+export const createWithdrawOrderService = async (request: CreateWithdrawOrderParams) => {
   return await WithdrawOrderModel.create(request);
 };
 
