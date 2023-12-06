@@ -733,7 +733,7 @@ export const getAllJoinRequestByClassroomId = async (
   await classroom
     .populate({
       path: "joinRequests",
-      options: { sort: { created_at: -1 } },
+      options: { sort: { "createdAt": -1 } },
     })
     .execPopulate();
 
@@ -916,7 +916,7 @@ export const getUserClassroomHistory = async (req: Request, res: Response) => {
   const classrooms = await ClassroomModel.find({
     historyParticipants: { $in: userId },
     terminated: true,
-  }).sort({ "created_at": -1 });
+  }).sort({ "createdAt": -1 });
 
   return res.status(StatusCodes.OK).json(
     successResponse({

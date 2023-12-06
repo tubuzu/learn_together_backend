@@ -22,7 +22,7 @@ export const searchSubject = async (req: Request, res: Response) => {
       };
 
   const subjects = await SubjectModel.find(keyword as Record<string, any>)
-    .sort({ created_at: -1 })
+    .sort({ "createdAt": -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   res.status(StatusCodes.OK).json({

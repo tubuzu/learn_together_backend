@@ -200,3 +200,26 @@ export const searchRechargeOrder = async (req: Request, res: Response) => {
     .status(StatusCodes.OK)
     .json(successResponse({ data: pageResponse(orders, page, perPage) }));
 };
+
+export const searchUserRechargeOrder = async (req: Request, res: Response) => {
+  const { state } = req.query;
+  const userId = res.locals.userData.user;
+  const page = parseInt(req.query.page as string) || 1;
+  const perPage = parseInt(req.query.perPage as string) || 10;
+
+  const keyword: any = {
+    user: userId,
+    isDeleted: false,
+  };
+
+  if (state) {
+    let stateArray: string[] = (state as string).split(",");
+    keyword.state = { $in: stateArray };
+  }
+
+  const orders = await findRechargeOrderPaginate(keyword, page, perPage);
+
+  return res
+    .status(StatusCodes.OK)
+    .json(successResponse({ data: pageResponse(orders, page, perPage) }));
+};

@@ -133,7 +133,7 @@ export const findClassroomsPaginate = async (
 ) => {
   const classrooms = await ClassroomModel.find(keyword)
     .populate("joinRequests")
-    .sort({ created_at: -1 })
+    .sort({ "createdAt": -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   return classrooms;
@@ -175,7 +175,7 @@ export const findUserCurClassesAndPaging = async (
 
   const classrooms = await ClassroomModel.find(keyword)
     .populate("joinRequests")
-    .sort({ created_at: -1 })
+    .sort({ "createdAt": -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   return classrooms;
