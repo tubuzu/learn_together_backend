@@ -126,17 +126,23 @@ export const createKeywordByLocation = (
 };
 
 // Tạo một hàm để tìm kiếm lớp học theo keyword, page và perPage
-export const findClassroomsPaginate = async (keyword: any, page: number, perPage: number) => {
+export const findClassroomsPaginate = async (
+  keyword: any,
+  page: number,
+  perPage: number
+) => {
   const classrooms = await ClassroomModel.find(keyword)
     .populate("joinRequests")
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   return classrooms;
 };
 
 export const findClassrooms = async (keyword: any) => {
-  const classrooms = await ClassroomModel.find(keyword)
-    .populate("joinRequests")
+  const classrooms = await ClassroomModel.find(keyword).populate(
+    "joinRequests"
+  );
   return classrooms;
 };
 
@@ -150,7 +156,12 @@ export const findClassroomById = async (id: string) => {
 };
 
 // Tạo một hàm để tìm kiếm lớp học của người dùng hiện tại theo vai trò
-export const findUserCurrentClassrooms = async (user: any, role: string) => {
+export const findUserCurClassesAndPaging = async (
+  user: any,
+  role: string,
+  page: number,
+  perPage: number
+) => {
   let keyword: any = {
     terminated: false,
     currentParticipants: { $in: user },
@@ -162,10 +173,10 @@ export const findUserCurrentClassrooms = async (user: any, role: string) => {
     keyword.owner = { $eq: user };
   }
 
-  const classrooms = await ClassroomModel.find(keyword).populate(
-    "joinRequests"
-  );
+  const classrooms = await ClassroomModel.find(keyword)
+    .populate("joinRequests")
+    .sort({ created_at: -1 })
+    .skip((page - 1) * perPage)
+    .limit(perPage);
   return classrooms;
 };
-
-

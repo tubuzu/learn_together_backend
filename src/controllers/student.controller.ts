@@ -33,6 +33,7 @@ export const searchStudent = async (req: Request, res: Response) => {
       };
 
   const students = await UserModel.find(keyword as Record<string, any>)
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage)
     .exec();

@@ -181,7 +181,7 @@ function sortObject(obj: any) {
 }
 
 export const searchRechargeOrder = async (req: Request, res: Response) => {
-  const { state } = req.params;
+  const { state } = req.query;
   const page = parseInt(req.query.page as string) || 1;
   const perPage = parseInt(req.query.perPage as string) || 10;
 

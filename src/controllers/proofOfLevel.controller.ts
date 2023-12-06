@@ -14,6 +14,7 @@ export const getAllUserProofOfLevel = async (req: Request, res: Response) => {
     user: res.locals.userData.user,
     isDeleted: false,
   })
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
@@ -56,6 +57,7 @@ export const getAllProofOfLevelByUserId = async (
     user: userId,
     isDeleted: false,
   })
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 

@@ -42,8 +42,6 @@ export const pageResponse = (
   return {
     items,
     count: items.length,
-    currentPage: page, // trang hiện tại
-    totalPages: Math.ceil(items.length / perPage), // tổng số trang
   };
 };
 

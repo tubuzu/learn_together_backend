@@ -22,6 +22,7 @@ export const findDonateOrderPaginate = async (
   perPage: number
 ) => {
   const classrooms = await DonateOrderModel.find(keyword)
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   return classrooms;

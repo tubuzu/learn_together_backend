@@ -14,7 +14,7 @@ import {
   findClassrooms,
   findClassroomsPaginate,
   findOneClassroom,
-  findUserCurrentClassrooms,
+  findUserCurClassesAndPaging,
   terminateClassroom,
   updateClassroomState,
   updateClassroomStateInterval,
@@ -124,9 +124,11 @@ export const getUserCurrentClassrooms = async (req: Request, res: Response) => {
   const perPage = parseInt(req.query.perPage as string) || 10;
 
   // Gọi hàm findUserCurrentClassrooms để tìm kiếm lớp học của người dùng hiện tại theo vai trò
-  const classrooms = await findUserCurrentClassrooms(
+  const classrooms = await findUserCurClassesAndPaging(
     res.locals.userData.user,
-    role
+    role,
+    page,
+    perPage
   );
 
   return res
@@ -728,7 +730,12 @@ export const getAllJoinRequestByClassroomId = async (
       "Classroom not valid or you are not the owner of this classroom!"
     );
 
-  await classroom.populate("joinRequests").execPopulate();
+  await classroom
+    .populate({
+      path: "joinRequests",
+      options: { sort: { created_at: -1 } },
+    })
+    .execPopulate();
 
   return res.status(StatusCodes.OK).json(
     successResponse({
@@ -909,7 +916,7 @@ export const getUserClassroomHistory = async (req: Request, res: Response) => {
   const classrooms = await ClassroomModel.find({
     historyParticipants: { $in: userId },
     terminated: true,
-  }).lean();
+  }).sort({ "created_at": -1 });
 
   return res.status(StatusCodes.OK).json(
     successResponse({

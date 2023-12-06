@@ -197,7 +197,10 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 export const getAllUsersProfile = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const perPage = parseInt(req.query.perPage as string) || 10;
-  const users = await UserModel.find({});
+  const users = await UserModel.find({})
+    .sort({ created_at: -1 })
+    .skip((page - 1) * perPage)
+    .limit(perPage);
 
   return res.status(StatusCodes.OK).json({
     success: true,

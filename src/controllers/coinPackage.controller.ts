@@ -12,6 +12,7 @@ export const getAllCoinPackage = async (req: Request, res: Response) => {
   const perPage = parseInt(req.query.perPage as string) || 10;
 
   const packages = await CoinPackageModel.find({})
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 

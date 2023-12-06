@@ -21,7 +21,10 @@ export const searchSubject = async (req: Request, res: Response) => {
         isDeleted: false,
       };
 
-  const subjects = await SubjectModel.find(keyword as Record<string, any>);
+  const subjects = await SubjectModel.find(keyword as Record<string, any>)
+    .sort({ created_at: -1 })
+    .skip((page - 1) * perPage)
+    .limit(perPage);
   res.status(StatusCodes.OK).json({
     success: true,
     data: pageResponse(subjects, page, perPage),

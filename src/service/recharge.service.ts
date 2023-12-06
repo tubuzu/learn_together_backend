@@ -13,6 +13,7 @@ export const findRechargeOrderPaginate = async (
   perPage: number
 ) => {
   const classrooms = await RechargeOrderModel.find(keyword)
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   return classrooms;

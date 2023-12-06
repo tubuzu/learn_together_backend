@@ -175,6 +175,7 @@ export const getAllUserProofOfLevelRequest = async (
           isDeleted: false,
         }
   )
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
@@ -204,6 +205,7 @@ export const getAllProofOfLevelRequest = async (
           isDeleted: false,
         }
   )
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
@@ -236,6 +238,7 @@ export const getAllProofOfLevelRequestByUserId = async (
           isDeleted: false,
         }
   )
+    .sort({ created_at: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
