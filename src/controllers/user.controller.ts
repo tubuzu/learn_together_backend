@@ -59,9 +59,9 @@ import { pageResponse } from "../utils/response.util.js";
  * @route GET /api/v1/user/
  */
 export const getUserProfile = async (req: Request, res: Response) => {
-  const user = await UserModel.findOne({ _id: res.locals.userData.user })
-    .populate("student")
-    .populate("tutor");
+  const user = await UserModel.findOne({
+    _id: res.locals.userData.user,
+  }).select("+currentCredit");
   if (!user) throw new NotFoundError("User not found!");
 
   return res.status(StatusCodes.OK).json({
