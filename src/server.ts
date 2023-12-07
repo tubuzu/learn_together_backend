@@ -13,6 +13,10 @@ import { studentRoutes } from "./routes/student.routes.js";
 import { classroomRoutes } from "./routes/classroom.routes.js";
 import { tutorRoutes } from "./routes/tutor.routes.js";
 import { proofOfLevelRoutes } from "./routes/proofOfLevel.routes.js";
+import { rechargeRoutes } from "./routes/recharge.routes.js";
+import { coinPackageRoutes } from "./routes/coinPackage.routes.js";
+import { donateRoutes } from "./routes/donate.routes.js";
+import { withdrawRoutes } from "./routes/withdraw.routes.js";
 
 // error handler
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";
@@ -96,13 +100,10 @@ server.on("listening", () => {
 // Keep server on Render alive
 import cron from "node-cron";
 import https from "https";
-import { rechargeRoutes } from "./routes/recharge.routes.js";
-import { coinPackageRoutes } from "./routes/coinPackage.routes.js";
-import { donateRoutes } from "./routes/donate.routes.js";
-import { withdrawRoutes } from "./routes/withdraw.routes.js";
+
 cron.schedule("*/14 * * * *", () => {
   https
-    .get(`${process.env.SERVER_ENDPOINT_PROD!}/test`, (res: any) => {
+    .get(`${process.env.SERVER_ENDPOINT!}/test`, (res: any) => {
       if (res.statusCode === 200) {
         console.log("Server restarted");
       } else {

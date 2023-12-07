@@ -32,9 +32,12 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
 
   var date = new Date();
 
-  var createDate = moment(date).format("YYYYMMDDHHmmss");
+  var createDate = moment(date).utcOffset("+07:00").format("YYYYMMDDHHmmss");
   var orderId = moment(date).format("HHmmss");
-  var expireDate = moment(date).add(5, "minutes").format("YYYYMMDDHHmmss");
+  var expireDate = moment(date)
+    .add(5, "minutes")
+    .utcOffset("+07:00")
+    .format("YYYYMMDDHHmmss");
   var amount = coinPackage.priceInVND * (100 - coinPackage.discount);
 
   var orderInfo = req.body.orderDescription;
