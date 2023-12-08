@@ -160,12 +160,12 @@ export const vnpUrlReturn = async (req: Request, res: Response) => {
 
   // var responseCode = vnp_Params["vnp_ResponseCode"];
   if (secureHash === signed) {
-    res.status(StatusCodes.OK).json(successResponse({ message: "Success" }));
+    // res.status(StatusCodes.OK).json(successResponse({ message: "Success" }));
     let returnURL = appSettings.CLIENT_VNP_RETURN_URL;
     returnURL += "?" + querystring.stringify(vnp_Params, { encode: false });
-    res.redirect(returnURL);
+    return res.redirect(returnURL);
   } else {
-    res
+    return res
       .status(StatusCodes.BAD_REQUEST)
       .json(errorResponse({ message: "Failed checksum!" }));
   }
