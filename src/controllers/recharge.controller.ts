@@ -42,9 +42,9 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
   var amount = coinPackage.priceInVND * (100 - coinPackage.discount);
 
   var orderInfo = req.body.orderDescription;
-  if (orderInfo === null) orderInfo = "";
+  if (orderInfo === undefined) orderInfo = coinPackage.description;
   var orderType = req.body.orderType;
-  if (orderType === null) orderType = 260000;
+  if (orderType === undefined) orderType = 260000;
   var locale = req.body.language;
   // if (locale === null || locale === "") {
   //   locale = "vn";
