@@ -8,7 +8,6 @@ import {
   reIssueUserAccessToken,
 } from "../service/session.service.js";
 import { UserType, accessTokenCookieOptions } from "../utils/const.js";
-import { appSettings } from "../settings/app.setting.js";
 
 const { get } = lodashPkg;
 
@@ -31,7 +30,7 @@ export const deserializeUser = async (
   //decodes token id
   const { decoded, expired } = verifyJwt(
     accessToken,
-    appSettings.ACCESS_TOKEN_SECRET as Secret
+    process.env.ACCESS_TOKEN_SECRET as Secret
   );
 
   if (decoded && get(decoded, "userType") == UserType.USER) {
@@ -51,7 +50,7 @@ export const deserializeUser = async (
 
     const result = verifyJwt(
       newAccessToken as string,
-      appSettings.ACCESS_TOKEN_SECRET as Secret
+      process.env.ACCESS_TOKEN_SECRET as Secret
     );
 
     res.locals.userData = result.decoded;
@@ -80,7 +79,7 @@ export const deserializeAdmin = async (
   //decodes token id
   const { decoded, expired } = verifyJwt(
     accessToken,
-    appSettings.ACCESS_TOKEN_SECRET as Secret
+    process.env.ACCESS_TOKEN_SECRET as Secret
   );
 
   if (decoded && get(decoded, "userType") == UserType.ADMIN) {
@@ -99,7 +98,7 @@ export const deserializeAdmin = async (
 
     const result = verifyJwt(
       newAccessToken as string,
-      appSettings.ACCESS_TOKEN_SECRET as Secret
+      process.env.ACCESS_TOKEN_SECRET as Secret
     );
 
     res.locals.userData = result.decoded;
