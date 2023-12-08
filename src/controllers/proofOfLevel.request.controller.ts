@@ -181,7 +181,7 @@ export const getAllUserProofOfLevelRequest = async (
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: pageResponse(requests, page, perPage),
+    data: pageResponse(requests),
   });
 };
 
@@ -211,7 +211,7 @@ export const getAllProofOfLevelRequest = async (
 
   return res.status(StatusCodes.CREATED).json({
     success: true,
-    data: pageResponse(requests, page, perPage),
+    data: pageResponse(requests),
   });
 };
 
@@ -244,7 +244,7 @@ export const getAllProofOfLevelRequestByUserId = async (
 
   return res.status(StatusCodes.CREATED).json({
     success: true,
-    data: pageResponse(requests, page, perPage),
+    data: pageResponse(requests),
   });
 };
 

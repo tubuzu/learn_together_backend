@@ -18,7 +18,7 @@ export const getAllCoinPackage = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(packages, page, perPage) }));
+    .json(successResponse({ data: pageResponse(packages) }));
 };
 
 export const createCoinPackage = async (req: Request, res: Response) => {

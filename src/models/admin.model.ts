@@ -2,6 +2,7 @@ import mongoose, { Document } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt, { Secret } from "jsonwebtoken";
 import { UserType } from "../utils/const.js";
+import { appSettings } from "../settings/app.setting.js";
 
 const adminSchema = new mongoose.Schema<AdminDocument>(
   {
@@ -32,9 +33,9 @@ adminSchema.methods.matchPassword = async function (enteredPassword) {
 adminSchema.methods.createAccessToken = function (sessionId: string) {
   return jwt.sign(
     { user: this._id, userType: UserType.ADMIN, session: sessionId },
-    process.env.ACCESS_TOKEN_SECRET as Secret,
+    appSettings.ACCESS_TOKEN_SECRET as Secret,
     {
-      expiresIn: process.env.ACCESS_LIFETIME,
+      expiresIn: appSettings.ACCESS_LIFETIME,
     }
   );
 };
@@ -42,9 +43,9 @@ adminSchema.methods.createAccessToken = function (sessionId: string) {
 adminSchema.methods.createRefreshToken = function (sessionId: string) {
   return jwt.sign(
     { user: this._id, userType: UserType.ADMIN, session: sessionId },
-    process.env.REFRESH_TOKEN_SECRET as Secret,
+    appSettings.REFRESH_TOKEN_SECRET as Secret,
     {
-      expiresIn: process.env.REFRESH_LIFETIME,
+      expiresIn: appSettings.REFRESH_LIFETIME,
     }
   );
 };

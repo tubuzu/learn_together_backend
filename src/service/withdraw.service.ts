@@ -1,6 +1,6 @@
 import { WithdrawOrderModel } from "../models/withdrawOrder.model.js";
 import { PaymentTransactionState } from "../utils/const.js";
-import { CreateWithdrawOrderParams } from "../interfaces/withdrawOrder.interface.js";
+import { CreateWithdrawOrderParams } from "../dtos/withdrawOrder.dto.js";
 
 export const createWithdrawOrderService = async (request: CreateWithdrawOrderParams) => {
   return await WithdrawOrderModel.create(request);

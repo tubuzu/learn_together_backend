@@ -27,7 +27,7 @@ export const searchSubject = async (req: Request, res: Response) => {
     .limit(perPage);
   res.status(StatusCodes.OK).json({
     success: true,
-    data: pageResponse(subjects, page, perPage),
+    data: pageResponse(subjects),
   });
 };
 

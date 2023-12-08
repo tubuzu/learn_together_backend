@@ -2,6 +2,7 @@ import mongoose, { Document } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt, { Secret } from "jsonwebtoken";
 import { GenderType, UserType } from "../utils/const.js";
+import { appSettings } from "../settings/app.setting.js";
 
 const userSchema = new mongoose.Schema<UserDocument>(
   {
@@ -100,9 +101,9 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 userSchema.methods.createAccessToken = function (sessionId: string) {
   return jwt.sign(
     { user: this._id, userType: UserType.USER, session: sessionId },
-    process.env.ACCESS_TOKEN_SECRET as Secret,
+    appSettings.ACCESS_TOKEN_SECRET as Secret,
     {
-      expiresIn: process.env.ACCESS_LIFETIME,
+      expiresIn: appSettings.ACCESS_LIFETIME,
     }
   );
 };
@@ -110,9 +111,9 @@ userSchema.methods.createAccessToken = function (sessionId: string) {
 userSchema.methods.createRefreshToken = function (sessionId: string) {
   return jwt.sign(
     { user: this._id, userType: UserType.USER, session: sessionId },
-    process.env.REFRESH_TOKEN_SECRET as Secret,
+    appSettings.REFRESH_TOKEN_SECRET as Secret,
     {
-      expiresIn: process.env.REFRESH_LIFETIME,
+      expiresIn: appSettings.REFRESH_LIFETIME,
     }
   );
 };

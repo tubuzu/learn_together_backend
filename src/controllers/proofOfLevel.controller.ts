@@ -20,7 +20,7 @@ export const getAllUserProofOfLevel = async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: pageResponse(proofs, page, perPage),
+    data: pageResponse(proofs),
   });
 };
 
@@ -63,7 +63,7 @@ export const getAllProofOfLevelByUserId = async (
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: pageResponse(proofs, page, perPage),
+    data: pageResponse(proofs),
   });
 };
 

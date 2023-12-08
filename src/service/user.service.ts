@@ -7,7 +7,8 @@ import { CustomAPIError } from "../errors/custom-api.error.js";
 import {
   AddCoinParams,
   DeductCoinParams,
-} from "../interfaces/user.interface.js";
+} from "../dtos/user.dto.js";
+import { appSettings } from "../settings/app.setting.js";
 
 export async function validateUserPassword({
   email,
@@ -38,9 +39,9 @@ export async function getGoogleOAuthTokens({
 
   const values = {
     code,
-    client_id: process.env.CLIENT_ID,
-    client_secret: process.env.CLIENT_SECRET,
-    redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URL,
+    client_id: appSettings.CLIENT_ID,
+    client_secret: appSettings.CLIENT_SECRET,
+    redirect_uri: appSettings.GOOGLE_OAUTH_REDIRECT_URL,
     grant_type: "authorization_code",
   };
 

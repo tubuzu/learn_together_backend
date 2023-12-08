@@ -32,6 +32,7 @@ import { CustomAPIError } from "../errors/custom-api.error.js";
 // import cron from "node-cron";
 import {
   errorResponse,
+  getPage,
   pageResponse,
   successResponse,
 } from "../utils/response.util.js";
@@ -42,7 +43,8 @@ import { createLocation } from "../service/location.service.js";
 
 import schedule from "node-schedule";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
-import { ClassroomParams } from "../interfaces/classroom.interface.js";
+import { ClassroomParams } from "../dtos/classroom.dto.js";
+import { createClassroomJoinedNoti } from "../service/notification.service.js";
 
 const MAX_CLASSROOM_JOIN_LIMIT = 5;
 
@@ -65,7 +67,7 @@ export const searchClassroom = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(classrooms, page, perPage) }));
+    .json(successResponse({ data: pageResponse(classrooms) }));
 };
 
 //@description     Search classroom
@@ -133,7 +135,7 @@ export const getUserCurrentClassrooms = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(classrooms, page, perPage) }));
+    .json(successResponse({ data: pageResponse(classrooms) }));
 };
 
 /**
@@ -452,6 +454,13 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     { new: true }
   );
 
+  await createClassroomJoinedNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: userId,
+    classroomId: updatedClassroom._id,
+  });
+  //TODO: push noti
+
   return res.status(StatusCodes.OK).json(
     successResponse({
       message: "Join classroom successfully!",
@@ -538,6 +547,13 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     updateQuery,
     { new: true }
   );
+
+  await createClassroomJoinedNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: userId,
+    classroomId: updatedClassroom._id,
+  });
+  //TODO: push noti
 
   return res.status(StatusCodes.OK).json(
     successResponse({
@@ -649,6 +665,13 @@ export const acceptJoinRequest = async (req: Request, res: Response) => {
     { new: true }
   );
 
+  await createClassroomJoinedNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: request.user,
+    classroomId: updatedClassroom._id,
+  });
+  //TODO: push noti
+
   // update request
   request.reviewer = userId;
   request.state = RequestState.ACCEPTED;
@@ -733,13 +756,15 @@ export const getAllJoinRequestByClassroomId = async (
   await classroom
     .populate({
       path: "joinRequests",
-      options: { sort: { "createdAt": -1 } },
+      options: { sort: { createdAt: -1 } },
     })
     .execPopulate();
 
+  const result = getPage(classroom.joinRequests, page, perPage);
+
   return res.status(StatusCodes.OK).json(
     successResponse({
-      data: pageResponse(classroom.joinRequests, page, perPage, true),
+      data: pageResponse(result),
     })
   );
 };
@@ -916,11 +941,11 @@ export const getUserClassroomHistory = async (req: Request, res: Response) => {
   const classrooms = await ClassroomModel.find({
     historyParticipants: { $in: userId },
     terminated: true,
-  }).sort({ "createdAt": -1 });
+  }).sort({ createdAt: -1 });
 
   return res.status(StatusCodes.OK).json(
     successResponse({
-      data: pageResponse(classrooms, page, perPage),
+      data: pageResponse(classrooms),
     })
   );
 };

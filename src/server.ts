@@ -90,7 +90,7 @@ app.use("/api/v1", coinPackageRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT;
+const PORT = appSettings.PORT;
 const server = http.createServer(app);
 server.listen(PORT);
 server.on("listening", () => {
@@ -100,10 +100,11 @@ server.on("listening", () => {
 // Keep server on Render alive
 import cron from "node-cron";
 import https from "https";
+import { appSettings } from "./settings/app.setting.js";
 
 cron.schedule("*/14 * * * *", () => {
   https
-    .get(`${process.env.SERVER_ENDPOINT!}/test`, (res: any) => {
+    .get(`${appSettings.SERVER_ENDPOINT!}/test`, (res: any) => {
       if (res.statusCode === 200) {
         console.log("Server restarted");
       } else {

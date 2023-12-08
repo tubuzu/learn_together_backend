@@ -1,13 +1,14 @@
 import nodemailer from "nodemailer";
 import 'dotenv/config';
+import { appSettings } from "../settings/app.setting.js";
 
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
+    host: appSettings.EMAIL_HOST,
+    port: Number(appSettings.EMAIL_PORT),
     secure: true,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: appSettings.EMAIL_USER,
+        pass: appSettings.EMAIL_PASS,
     },
 });
 
@@ -18,7 +19,7 @@ export const sendEmail = async (to: string, subject: string, body: string) => {
     try {
         await transporter.sendMail({
             to: to,
-            from: process.env.EMAIL_USER as string,
+            from: appSettings.EMAIL_USER as string,
             subject: subject,
             html: body,
         });

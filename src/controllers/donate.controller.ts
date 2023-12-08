@@ -251,7 +251,7 @@ export const searchDonateOrder = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(orders, page, perPage) }));
+    .json(successResponse({ data: pageResponse(orders) }));
 };
 
 export const searchUserDonateOrder = async (req: Request, res: Response) => {
@@ -274,5 +274,5 @@ export const searchUserDonateOrder = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(orders, page, perPage) }));
+    .json(successResponse({ data: pageResponse(orders) }));
 };

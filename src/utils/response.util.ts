@@ -30,15 +30,7 @@ export const getPage = (items: Array<any>, page: number, perPage: number) => {
   return items.slice(startIndex, endIndex);
 };
 
-export const pageResponse = (
-  items: Array<any>,
-  page: number,
-  perPage: number,
-  useGetPage: boolean = false
-) => {
-  page = Math.max(page, 1);
-  perPage = Math.max(perPage, 1);
-  if (useGetPage) items = getPage(items, page, perPage);
+export const pageResponse = (items: Array<any>) => {
   return {
     items,
     count: items.length,

@@ -40,7 +40,7 @@ export const searchStudent = async (req: Request, res: Response) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    data: pageResponse(students, page, perPage),
+    data: pageResponse(students),
   });
 };
 

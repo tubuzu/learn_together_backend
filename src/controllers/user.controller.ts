@@ -204,6 +204,6 @@ export const getAllUsersProfile = async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: pageResponse(users, page, perPage),
+    data: pageResponse(users),
   });
 };

@@ -157,7 +157,7 @@ export const searchWithdrawOrder = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(orders, page, perPage) }));
+    .json(successResponse({ data: pageResponse(orders) }));
 };
 
 export const searchUserWithdrawOrder = async (req: Request, res: Response) => {
@@ -180,5 +180,5 @@ export const searchUserWithdrawOrder = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(orders, page, perPage) }));
+    .json(successResponse({ data: pageResponse(orders) }));
 };

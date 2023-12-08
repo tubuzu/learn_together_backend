@@ -1,4 +1,4 @@
-import { CreateLocationParams } from "../interfaces/location.interface.js";
+import { CreateLocationParams } from "../dtos/location.dto.js";
 
 export function createLocation({ longitude, latitude }: CreateLocationParams) {
   return longitude && latitude

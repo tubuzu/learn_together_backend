@@ -51,7 +51,7 @@ export const searchTutor = async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.OK).json({
     success: true,
-    data: pageResponse(tutors, page, perPage),
+    data: pageResponse(tutors),
   });
 };
 // {

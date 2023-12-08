@@ -1,4 +1,4 @@
-import { CreateRechargeOrderParams } from "../interfaces/rechargeOrder.interface.js";
+import { CreateRechargeOrderParams } from "../dtos/rechargeOrder.dto.js";
 import { RechargeOrderModel } from "../models/rechargeOrder.model.js";
 
 export const createRechargeOrder = async (

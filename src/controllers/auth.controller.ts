@@ -20,6 +20,7 @@ import {
   getGoogleUser,
 } from "../service/user.service.js";
 import { generatePassword } from "../utils/generate-password.js";
+import { appSettings } from "../settings/app.setting.js";
 
 const { get } = lodashPkg;
 
@@ -41,7 +42,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
   const verificationToken = jwt.sign(
     { email: email },
-    process.env.EMAIL_VERIFICATION_KEY as Secret,
+    appSettings.EMAIL_VERIFICATION_KEY as Secret,
     {
       expiresIn: "1d",
     }
@@ -61,7 +62,7 @@ export const registerUser = async (req: Request, res: Response) => {
   const body = `
             <p> Hello ${user.firstName} ${user.lastName},</p>
             <p>Please click on the link below to verify your account on Learn Together</p>
-            <a href="${process.env.SERVER_ENDPOINT}/api/v1/verify-account/${verificationToken}">Verify Account</a>
+            <a href="${appSettings.SERVER_ENDPOINT}/api/v1/verify-account/${verificationToken}">Verify Account</a>
             <p>Regards,</p>
             <p>Team Learn Together</p>
         `;
@@ -259,7 +260,7 @@ export const verifyAccount = async (req: Request, res: Response) => {
   //verify token
   const { decoded } = verifyJwt(
     verificationToken,
-    process.env.EMAIL_VERIFICATION_KEY as Secret
+    appSettings.EMAIL_VERIFICATION_KEY as Secret
   );
 
   if (!decoded) {
@@ -319,7 +320,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
   //generate token
   const verificationToken = jwt.sign(
     { email: email },
-    process.env.EMAIL_VERIFICATION_KEY as Secret,
+    appSettings.EMAIL_VERIFICATION_KEY as Secret,
     {
       expiresIn: "1d",
     }
@@ -335,7 +336,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
   const body = `
         <p> Hello ${user.firstName} ${user.lastName},</p>
         <p>Please click on the link below to verify your account on Learn Together</p>
-        <a href="${process.env.SERVER_ENDPOINT}/api/v1/verify-account/${verificationToken}">Verify Account</a>
+        <a href="${appSettings.SERVER_ENDPOINT}/api/v1/verify-account/${verificationToken}">Verify Account</a>
         <p>Regards,</p>
         <p>Team Learn Together</p>
         `;
@@ -364,7 +365,7 @@ export const refreshUser = async (req: Request, res: Response) => {
 
   const { decoded } = verifyJwt(
     refreshToken,
-    process.env.REFRESH_TOKEN_SECRET as Secret
+    appSettings.REFRESH_TOKEN_SECRET as Secret
   );
 
   if (!decoded || !get(decoded, "session")) {
@@ -408,7 +409,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
   //generate token
   const token = signJwt(
     { user: user._id },
-    process.env.RESET_PASSWORD_SECRET as Secret,
+    appSettings.RESET_PASSWORD_SECRET as Secret,
     { expiresIn: "5m" }
   );
 
@@ -417,7 +418,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
   const subject = "Reset Account Password Link";
   const body = `
     <h3>Please click the link below to reset your password</h3>
-    <a href="${process.env.SERVER_ENDPOINT}/api/v1/reset-password/${token}">Reset Password</a>`;
+    <a href="${appSettings.SERVER_ENDPOINT}/api/v1/reset-password/${token}">Reset Password</a>`;
 
   //update the user and add the token
   user.passwordResetToken = token;
@@ -451,7 +452,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
   const { decoded } = verifyJwt(
     resetToken,
-    process.env.RESET_PASSWORD_SECRET as Secret
+    appSettings.RESET_PASSWORD_SECRET as Secret
   );
 
   if (!decoded) {
@@ -579,7 +580,7 @@ export const refreshAdmin = async (req: Request, res: Response) => {
 
   const { decoded } = verifyJwt(
     refreshToken,
-    process.env.REFRESH_TOKEN_SECRET as Secret
+    appSettings.REFRESH_TOKEN_SECRET as Secret
   );
 
   if (!decoded || !get(decoded, "session")) {

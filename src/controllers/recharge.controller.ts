@@ -18,6 +18,7 @@ import { RechargeOrderModel } from "../models/rechargeOrder.model.js";
 import { UserModel } from "../models/user.model.js";
 import { addCoinToUser } from "../service/user.service.js";
 import { PaymentTransactionState } from "../utils/const.js";
+import { appSettings } from "../settings/app.setting.js";
 
 export const createPaymentUrl = async (req: Request, res: Response) => {
   const userId = res.locals.userData.user;
@@ -150,20 +151,23 @@ export const vnpUrlReturn = async (req: Request, res: Response) => {
 
   vnp_Params = sortObject(vnp_Params);
 
-  var tmnCode = vnpConfig.vnp_TmnCode;
+  // var tmnCode = vnpConfig.vnp_TmnCode;
   var secretKey = vnpConfig.vnp_HashSecret;
 
   var signData = querystring.stringify(vnp_Params, { encode: false });
   var hmac = crypto.createHmac("sha512", secretKey);
   var signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
-  var responseCode = vnp_Params["vnp_ResponseCode"];
-  if (secureHash === signed && responseCode == "00") {
+  // var responseCode = vnp_Params["vnp_ResponseCode"];
+  if (secureHash === signed) {
     res.status(StatusCodes.OK).json(successResponse({ message: "Success" }));
+    let returnURL = appSettings.CLIENT_VNP_RETURN_URL;
+    returnURL += "?" + querystring.stringify(vnp_Params, { encode: false });
+    res.redirect(returnURL);
   } else {
     res
       .status(StatusCodes.BAD_REQUEST)
-      .json(errorResponse({ message: "Failed" }));
+      .json(errorResponse({ message: "Failed checksum!" }));
   }
 };
 
@@ -201,7 +205,7 @@ export const searchRechargeOrder = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(orders, page, perPage) }));
+    .json(successResponse({ data: pageResponse(orders) }));
 };
 
 export const searchUserRechargeOrder = async (req: Request, res: Response) => {
@@ -224,5 +228,5 @@ export const searchUserRechargeOrder = async (req: Request, res: Response) => {
 
   return res
     .status(StatusCodes.OK)
-    .json(successResponse({ data: pageResponse(orders, page, perPage) }));
+    .json(successResponse({ data: pageResponse(orders) }));
 };

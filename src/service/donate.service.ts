@@ -1,5 +1,5 @@
 import { PaymentTransactionState } from "../utils/const.js";
-import { CreateDonateOrderParams } from "../interfaces/donateOrder.interface.js";
+import { CreateDonateOrderParams } from "../dtos/donateOrder.dto.js";
 import { DonateOrderModel } from "../models/donateOrder.model.js";
 
 export const createDonateOrder = async (request: CreateDonateOrderParams) => {

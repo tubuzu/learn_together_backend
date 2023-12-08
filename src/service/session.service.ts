@@ -5,6 +5,7 @@ import SessionModel, { SessionDocument } from "../models/session.model.js";
 import { verifyJwt } from "../utils/jwt.utils.js";
 import { UserModel } from "../models/user.model.js";
 import { AdminModel } from "../models/admin.model.js";
+import { appSettings } from "../settings/app.setting.js";
 
 const { get } = lodashPkg;
 
@@ -32,7 +33,7 @@ export async function reIssueUserAccessToken({
 }) {
   const { decoded } = verifyJwt(
     refreshToken,
-    process.env.REFRESH_TOKEN_SECRET as Secret
+    appSettings.REFRESH_TOKEN_SECRET as Secret
   );
 
   if (!decoded || !get(decoded, "session")) return false;
@@ -57,7 +58,7 @@ export async function reIssueAdminAccessToken({
 }) {
   const { decoded } = verifyJwt(
     refreshToken,
-    process.env.REFRESH_TOKEN_SECRET as Secret
+    appSettings.REFRESH_TOKEN_SECRET as Secret
   );
 
   if (!decoded || !get(decoded, "session")) return false;

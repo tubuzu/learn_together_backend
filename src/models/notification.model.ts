@@ -1,16 +1,25 @@
 import mongoose, { Document } from "mongoose";
-import { NotificationType } from "../utils/const.js";
+import { NotificationCode } from "../utils/const.js";
 
 const notificationSchema = new mongoose.Schema<NotificationDocument>(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    content: { type: String, required: true },
-    isRead: { type: Boolean, default: false },
-    notificationType: {
-      type: String,
-      enum: Object.values(NotificationType),
-      default: NotificationType.GENERAL,
+    originUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
+    targetUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    hasRead: { type: Boolean, default: false },
+    notificationCode: {
+      type: String,
+      enum: Object.values(NotificationCode),
+      required: true,
+    },
+    extraData: { type: Object },
 
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
@@ -24,10 +33,11 @@ export const NotificationModel = mongoose.model(
 );
 
 export interface NotificationDocument extends Document {
-  user: string;
-  content: string;
-  isRead: boolean;
-  notificationType: string;
+  originUser: string;
+  targetUser: string;
+  notificationCode: string;
+  hasRead: boolean;
+  extraData: object;
 
   isDeleted: boolean;
   deletedAt: Date;

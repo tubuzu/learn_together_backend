@@ -1,7 +1,7 @@
 import {
   CreateCoinPackageParams,
   UpdateCoinPackageParams,
-} from "../interfaces/coinPackage.interface.js";
+} from "../dtos/coinPackage.dto.js";
 import { CoinPackageModel } from "../models/coinPackage.model.js";
 
 export const createCoinPackageService = async (
