@@ -11,6 +11,10 @@ import { BadRequestError } from "../errors/bad-request.error.js";
 import { processFileMiddleware } from "../middlewares/upload.middleware.js";
 import { findAndUpdateUser } from "../service/user.service.js";
 import { pageResponse } from "../utils/response.util.js";
+import {
+  createProofOfLevelAcceptedNoti,
+  createProofOfLevelRejectedNoti,
+} from "../service/notification.service.js";
 
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
@@ -175,7 +179,7 @@ export const getAllUserProofOfLevelRequest = async (
           isDeleted: false,
         }
   )
-    .sort({ "createdAt": -1 })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
@@ -205,7 +209,7 @@ export const getAllProofOfLevelRequest = async (
           isDeleted: false,
         }
   )
-    .sort({ "createdAt": -1 })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
@@ -238,7 +242,7 @@ export const getAllProofOfLevelRequestByUserId = async (
           isDeleted: false,
         }
   )
-    .sort({ "createdAt": -1 })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 
@@ -256,6 +260,7 @@ export const acceptProofOfLevelRequest = async (
   res: Response
 ) => {
   const { requestId, noteOfReviewer } = req.body as any;
+  const userId = res.locals.userData.user;
 
   let request = await ProofOfLevelRequestModel.findById(requestId);
 
@@ -264,6 +269,7 @@ export const acceptProofOfLevelRequest = async (
   }
 
   request.state = RequestState.ACCEPTED;
+  request.reviewer = userId;
   request.noteOfReviewer = noteOfReviewer;
   await request.save();
 
@@ -273,6 +279,13 @@ export const acceptProofOfLevelRequest = async (
     documentURLs: request.documentURLs,
     noteOfSender: request.noteOfSender,
     request: request._id,
+  });
+
+  await createProofOfLevelAcceptedNoti({
+    originUserId: userId,
+    targetUserId: request.sender,
+    requestId: request._id,
+    proofOfLevelId: proof._id,
   });
 
   return res.status(StatusCodes.CREATED).json({
@@ -292,6 +305,7 @@ export const rejectProofOfLevelRequest = async (
   res: Response
 ) => {
   const { requestId, noteOfReviewer } = req.body as any;
+  const userId = res.locals.userData.user;
 
   let request = await ProofOfLevelRequestModel.findById(requestId);
 
@@ -300,8 +314,15 @@ export const rejectProofOfLevelRequest = async (
   }
 
   request.state = RequestState.REJECTED;
+  request.reviewer = userId;
   request.noteOfReviewer = noteOfReviewer;
   await request.save();
+
+  await createProofOfLevelRejectedNoti({
+    originUserId: userId,
+    targetUserId: request.sender,
+    requestId: request._id,
+  });
 
   return res.status(StatusCodes.CREATED).json({
     success: true,

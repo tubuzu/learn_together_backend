@@ -18,6 +18,8 @@ import {
   terminateClassroom,
   updateClassroomState,
   updateClassroomStateInterval,
+  updateFinishedClassroom,
+  updateStartedClassroom,
 } from "../service/classroom.service.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import {
@@ -44,7 +46,17 @@ import { createLocation } from "../service/location.service.js";
 import schedule from "node-schedule";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { ClassroomParams } from "../dtos/classroom.dto.js";
-import { createClassroomJoinedNoti } from "../service/notification.service.js";
+import {
+  createClassroomFinishedNoti,
+  createClassroomNewMemberNoti,
+  createClassroomStartedNoti,
+  createClassroomTerminatedNoti,
+  createJoinRequestAcceptedNoti,
+  createJoinRequestRejectedNoti,
+  createMemberKickedNoti,
+  createOwnerUpdatedNoti,
+  createTutorUpdatedNoti,
+} from "../service/notification.service.js";
 
 const MAX_CLASSROOM_JOIN_LIMIT = 5;
 
@@ -239,11 +251,11 @@ export const createClassroom = async (req: Request, res: Response) => {
     owner: res.locals.userData.user,
   });
 
-  const startTask = schedule.scheduleJob(new Date(startTime), () =>
-    updateClassroomState({ _id: classroom._id }, ClassroomState.LEARNING)
+  const startTask = schedule.scheduleJob(new Date(startTime), async () =>
+    updateStartedClassroom(classroom._id)
   );
-  const endTask = schedule.scheduleJob(new Date(endTime), () =>
-    updateClassroomState({ _id: classroom._id }, ClassroomState.FINISHED)
+  const endTask = schedule.scheduleJob(new Date(endTime), async () =>
+    updateFinishedClassroom(classroom._id)
   );
   scheduledTasks[classroom._id] = [startTask, endTask];
 
@@ -315,8 +327,7 @@ export const updateClassroom = async (req: Request, res: Response) => {
     if (scheduledTasks[classroomId][0]) scheduledTasks[classroomId][0].cancel();
     const newStartTask = schedule.scheduleJob(
       new Date(updateObj.startTime as number),
-      () =>
-        updateClassroomState({ _id: classroom._id }, ClassroomState.LEARNING)
+      async () => updateStartedClassroom(classroom._id)
     );
     scheduledTasks[classroomId][0] = newStartTask;
     updateObj.state = ClassroomState.WAITING;
@@ -324,8 +335,9 @@ export const updateClassroom = async (req: Request, res: Response) => {
 
   if (updateObj.endTime) {
     if (scheduledTasks[classroomId][1]) scheduledTasks[classroomId][1].cancel();
-    const newEndTask = schedule.scheduleJob(updateObj.endDate as number, () =>
-      updateClassroomState({ _id: classroom._id }, ClassroomState.FINISHED)
+    const newEndTask = schedule.scheduleJob(
+      updateObj.endDate as number,
+      async () => updateFinishedClassroom(classroom._id)
     );
     scheduledTasks[classroomId][1] = newEndTask;
     if (!updateObj.startTime && classroom.state == ClassroomState.FINISHED)
@@ -454,7 +466,7 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     { new: true }
   );
 
-  await createClassroomJoinedNoti({
+  await createClassroomNewMemberNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: userId,
     classroomId: updatedClassroom._id,
@@ -548,7 +560,7 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     { new: true }
   );
 
-  await createClassroomJoinedNoti({
+  await createClassroomNewMemberNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: userId,
     classroomId: updatedClassroom._id,
@@ -597,6 +609,16 @@ export const endClassroom = async (req: Request, res: Response) => {
   if (!classroom) {
     throw new BadRequestError("Something went wrong!");
   }
+
+  await Promise.all(
+    classroom.currentParticipants.map(async (user: any) => {
+      await createClassroomTerminatedNoti({
+        originUserId: classroom.owner,
+        targetUserId: user,
+        classroomId: classroom._id,
+      });
+    })
+  );
 
   return res.status(StatusCodes.OK).json(successResponse({ data: classroom }));
 };
@@ -665,7 +687,12 @@ export const acceptJoinRequest = async (req: Request, res: Response) => {
     { new: true }
   );
 
-  await createClassroomJoinedNoti({
+  await createClassroomNewMemberNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: request.user,
+    classroomId: updatedClassroom._id,
+  });
+  await createJoinRequestAcceptedNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: request.user,
     classroomId: updatedClassroom._id,
@@ -719,6 +746,12 @@ export const rejectJoinRequest = async (req: Request, res: Response) => {
   request.reviewer = userId;
   request.state = RequestState.REJECTED;
   await request.save();
+
+  await createJoinRequestRejectedNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: request.user,
+    classroomId: updatedClassroom._id,
+  });
 
   return res.status(StatusCodes.OK).json(
     successResponse({
@@ -840,6 +873,12 @@ export const kickUser = async (req: Request, res: Response) => {
     }
   );
 
+  await createMemberKickedNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: userId,
+    classroomId: updatedClassroom._id,
+  });
+
   return res.status(StatusCodes.OK).json(
     successResponse({
       data: {
@@ -884,6 +923,12 @@ export const updateClassroomTutor = async (req: Request, res: Response) => {
     }
   );
 
+  await createTutorUpdatedNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: userId,
+    classroomId: updatedClassroom._id,
+  });
+
   return res.status(StatusCodes.OK).json(
     successResponse({
       data: {
@@ -919,6 +964,12 @@ export const updateClassroomOwner = async (req: Request, res: Response) => {
       new: true,
     }
   );
+
+  await createOwnerUpdatedNoti({
+    originUserId: oldOwnerId,
+    targetUserId: updatedClassroom.owner,
+    classroomId: updatedClassroom._id,
+  });
 
   return res.status(StatusCodes.OK).json(
     successResponse({

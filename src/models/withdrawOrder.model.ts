@@ -36,8 +36,7 @@ export const WithdrawOrderModel = mongoose.model(
 );
 
 export interface WithdrawOrderDocument extends Document {
-  sender: string;
-  receiver: string;
+  user: string;
   amountOfCoin: number;
   bankName: string;
   bankAccountCode: string;

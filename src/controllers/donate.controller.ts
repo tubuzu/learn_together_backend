@@ -19,6 +19,7 @@ import {
 } from "../utils/response.util.js";
 import schedule from "node-schedule";
 import moment from "moment";
+import { createDonateCoinSuccessNoti } from "../service/notification.service.js";
 
 const { startSession } = mongoosePackage;
 
@@ -218,6 +219,13 @@ export const comfirmOTPAndDonate = async (req: Request, res: Response) => {
     if (scheduledTasks[donateOrder._id])
       scheduledTasks[donateOrder._id].cancel();
     await donateOrder.save();
+
+    await createDonateCoinSuccessNoti({
+      originUserId: donateOrder.sender,
+      targetUserId: donateOrder.receiver,
+      orderId: donateOrder._id,
+      amountOfCoin: donateOrder.amountOfCoin,
+    });
 
     await session.commitTransaction();
     res

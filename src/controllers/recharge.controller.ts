@@ -19,6 +19,7 @@ import { UserModel } from "../models/user.model.js";
 import { addCoinToUser } from "../service/user.service.js";
 import { PaymentTransactionState } from "../utils/const.js";
 import { appSettings } from "../settings/app.setting.js";
+import { createRechargeCoinSuccessNoti } from "../service/notification.service.js";
 
 export const createPaymentUrl = async (req: Request, res: Response) => {
   const userId = res.locals.userData.user;
@@ -122,7 +123,12 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
           userId: rechargeOrder.user,
           amountOfCoin: rechargeOrder.package.amountOfCoin,
         });
-        console.log(rechargeOrder.package.amountOfCoin);
+        await createRechargeCoinSuccessNoti({
+          originUserId: rechargeOrder.user,
+          targetUserId: rechargeOrder.user,
+          orderId: rechargeOrder._id,
+          amountOfCoin: rechargeOrder.amountOfCoin,
+        });
       } else {
         rechargeOrder.state = PaymentTransactionState.FAILED;
       }

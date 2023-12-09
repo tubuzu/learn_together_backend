@@ -9,6 +9,10 @@ import {
   UserType,
 } from "../utils/const.js";
 import { UserDocument } from "../models/user.model.js";
+import {
+  createClassroomFinishedNoti,
+  createClassroomStartedNoti,
+} from "./notification.service.js";
 
 export async function findAndUpdateClassroom(
   query: FilterQuery<ClassroomDocument>,
@@ -133,7 +137,7 @@ export const findClassroomsPaginate = async (
 ) => {
   const classrooms = await ClassroomModel.find(keyword)
     .populate("joinRequests")
-    .sort({ "createdAt": -1 })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   return classrooms;
@@ -175,8 +179,36 @@ export const findUserCurClassesAndPaging = async (
 
   const classrooms = await ClassroomModel.find(keyword)
     .populate("joinRequests")
-    .sort({ "createdAt": -1 })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
   return classrooms;
+};
+
+export const updateFinishedClassroom = async (id: string) => {
+  const curClass = await ClassroomModel.findById(id);
+  updateClassroomState({ _id: id }, ClassroomState.FINISHED);
+  await Promise.all(
+    curClass.currentParticipants.map(async (user: any) => {
+      await createClassroomFinishedNoti({
+        originUserId: curClass.owner,
+        targetUserId: user,
+        classroomId: id,
+      });
+    })
+  );
+};
+
+export const updateStartedClassroom = async (id: string) => {
+  const curClass = await ClassroomModel.findById(id);
+  updateClassroomState({ _id: id }, ClassroomState.LEARNING);
+  await Promise.all(
+    curClass.currentParticipants.map(async (user: any) => {
+      await createClassroomStartedNoti({
+        originUserId: curClass.owner,
+        targetUserId: user,
+        classroomId: id,
+      });
+    })
+  );
 };

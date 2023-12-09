@@ -12,6 +12,12 @@ import {
   pageResponse,
   successResponse,
 } from "../utils/response.util.js";
+import {
+  createWithdrawRequestAcceptedNoti,
+  createWithdrawRequestCanceledNoti,
+  createWithdrawRequestRejectedNoti,
+  createWithdrawRequestSubmittedNoti,
+} from "../service/notification.service.js";
 
 export const createWithdrawOrder = async (req: Request, res: Response) => {
   const { amountOfCoin, bankName, bankAccountCode, bankAccountName } = req.body;
@@ -38,6 +44,13 @@ export const createWithdrawOrder = async (req: Request, res: Response) => {
     $inc: {
       currentCredit: -amountOfCoin,
     },
+  });
+
+  await createWithdrawRequestSubmittedNoti({
+    originUserId: userId,
+    targetUserId: userId,
+    orderId: order._id,
+    amountOfCoin: order.amountOfCoin,
   });
 
   res.status(StatusCodes.OK).json(
@@ -74,6 +87,13 @@ export const cancelWithdrawOrder = async (req: Request, res: Response) => {
     },
   });
 
+  await createWithdrawRequestCanceledNoti({
+    originUserId: userId,
+    targetUserId: userId,
+    orderId: withdrawOrder._id,
+    amountOfCoin: withdrawOrder.amountOfCoin,
+  });
+
   res.status(StatusCodes.OK).json(
     successResponse({
       message: "Cancel withdraw order successfully!",
@@ -83,6 +103,7 @@ export const cancelWithdrawOrder = async (req: Request, res: Response) => {
 
 export const acceptWithdrawOrder = async (req: Request, res: Response) => {
   const { orderId } = req.body;
+  const userId = res.locals.userData.user;
 
   const withdrawOrder = await WithdrawOrderModel.findOne({
     _id: orderId,
@@ -100,6 +121,13 @@ export const acceptWithdrawOrder = async (req: Request, res: Response) => {
   withdrawOrder.state = PaymentTransactionState.SUCCESS;
   await withdrawOrder.save();
 
+  await createWithdrawRequestAcceptedNoti({
+    originUserId: userId,
+    targetUserId: withdrawOrder.user,
+    orderId: withdrawOrder._id,
+    amountOfCoin: withdrawOrder.amountOfCoin,
+  });
+
   res.status(StatusCodes.OK).json(
     successResponse({
       message: "Accept withdraw order successfully!",
@@ -109,6 +137,7 @@ export const acceptWithdrawOrder = async (req: Request, res: Response) => {
 
 export const rejectWithdrawOrder = async (req: Request, res: Response) => {
   const { orderId } = req.body;
+  const userId = res.locals.userData.user;
 
   const withdrawOrder = await WithdrawOrderModel.findOne({
     _id: orderId,
@@ -130,6 +159,13 @@ export const rejectWithdrawOrder = async (req: Request, res: Response) => {
     $inc: {
       currentCredit: withdrawOrder.amountOfCoin,
     },
+  });
+
+  await createWithdrawRequestRejectedNoti({
+    originUserId: userId,
+    targetUserId: withdrawOrder.user,
+    orderId: withdrawOrder._id,
+    amountOfCoin: withdrawOrder.amountOfCoin,
   });
 
   res.status(StatusCodes.OK).json(
