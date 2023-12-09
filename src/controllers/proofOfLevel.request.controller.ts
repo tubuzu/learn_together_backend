@@ -15,7 +15,7 @@ import {
   createProofOfLevelAcceptedNoti,
   createProofOfLevelRejectedNoti,
 } from "../service/notification.service.js";
-import { SubjectModel } from "src/models/subject.model.js";
+import { SubjectModel } from "../models/subject.model.js";
 
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
