@@ -46,11 +46,13 @@ export const createWithdrawOrder = async (req: Request, res: Response) => {
     },
   });
 
+  let notiContent = `You have sent withdraw request for ${order.amountOfCoin} coins`;
   await createWithdrawRequestSubmittedNoti({
     originUserId: userId,
     targetUserId: userId,
     orderId: order._id,
     amountOfCoin: order.amountOfCoin,
+    content: notiContent,
   });
 
   res.status(StatusCodes.OK).json(
@@ -87,11 +89,13 @@ export const cancelWithdrawOrder = async (req: Request, res: Response) => {
     },
   });
 
+  let notiContent = `You have canceled withdraw request for ${withdrawOrder.amountOfCoin} coins`;
   await createWithdrawRequestCanceledNoti({
     originUserId: userId,
     targetUserId: userId,
     orderId: withdrawOrder._id,
     amountOfCoin: withdrawOrder.amountOfCoin,
+    content: notiContent,
   });
 
   res.status(StatusCodes.OK).json(
@@ -121,11 +125,13 @@ export const acceptWithdrawOrder = async (req: Request, res: Response) => {
   withdrawOrder.state = PaymentTransactionState.SUCCESS;
   await withdrawOrder.save();
 
+  let notiContent = `Your withdraw request for ${withdrawOrder.amountOfCoin} coins has been accepted`;
   await createWithdrawRequestAcceptedNoti({
     originUserId: userId,
     targetUserId: withdrawOrder.user,
     orderId: withdrawOrder._id,
     amountOfCoin: withdrawOrder.amountOfCoin,
+    content: notiContent,
   });
 
   res.status(StatusCodes.OK).json(
@@ -161,11 +167,13 @@ export const rejectWithdrawOrder = async (req: Request, res: Response) => {
     },
   });
 
+  let notiContent = `Your withdraw request for ${withdrawOrder.amountOfCoin} coins has been rejected`;
   await createWithdrawRequestRejectedNoti({
     originUserId: userId,
     targetUserId: withdrawOrder.user,
     orderId: withdrawOrder._id,
     amountOfCoin: withdrawOrder.amountOfCoin,
+    content: notiContent,
   });
 
   res.status(StatusCodes.OK).json(

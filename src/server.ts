@@ -85,6 +85,7 @@ app.use("/api/v1", rechargeRoutes);
 app.use("/api/v1", donateRoutes);
 app.use("/api/v1", withdrawRoutes);
 app.use("/api/v1", coinPackageRoutes);
+app.use("/api/v1", notificationRoutes);
 
 // Error Handling middlewares
 app.use(notFound);
@@ -100,6 +101,7 @@ server.on("listening", () => {
 // Keep server on Render alive
 import cron from "node-cron";
 import https from "https";
+import { notificationRoutes } from "./routes/notification.routes.js";
 
 cron.schedule("*/14 * * * *", () => {
   https

@@ -19,7 +19,10 @@ import {
 } from "../utils/response.util.js";
 import schedule from "node-schedule";
 import moment from "moment";
-import { createDonateCoinSuccessNoti } from "../service/notification.service.js";
+import {
+  createDonateCoinSuccessNoti,
+  createReceivedCoinNoti,
+} from "../service/notification.service.js";
 
 const { startSession } = mongoosePackage;
 
@@ -220,11 +223,23 @@ export const comfirmOTPAndDonate = async (req: Request, res: Response) => {
       scheduledTasks[donateOrder._id].cancel();
     await donateOrder.save();
 
-    await createDonateCoinSuccessNoti({
+    let notiContent = `You have received ${donateOrder.amountOfCoin} from ${sender.firstName} ${sender.lastName}`;
+    await createReceivedCoinNoti({
       originUserId: donateOrder.sender,
       targetUserId: donateOrder.receiver,
       orderId: donateOrder._id,
       amountOfCoin: donateOrder.amountOfCoin,
+      content: notiContent,
+    });
+
+    const receiver = await UserModel.findById(donateOrder.receiver);
+    notiContent = `You have sent ${donateOrder.amountOfCoin} to ${receiver.firstName} ${receiver.lastName}`;
+    await createDonateCoinSuccessNoti({
+      originUserId: donateOrder.receiver,
+      targetUserId: donateOrder.sender,
+      orderId: donateOrder._id,
+      amountOfCoin: donateOrder.amountOfCoin,
+      content: notiContent,
     });
 
     await session.commitTransaction();

@@ -15,6 +15,7 @@ import {
   createProofOfLevelAcceptedNoti,
   createProofOfLevelRejectedNoti,
 } from "../service/notification.service.js";
+import { SubjectModel } from "src/models/subject.model.js";
 
 //@description     Get or Search all tutors
 //@route           GET /api/v1/tutor?search=&subjectId=
@@ -281,11 +282,14 @@ export const acceptProofOfLevelRequest = async (
     request: request._id,
   });
 
+  const subject = await SubjectModel.findById(request.subject);
+  let notiContent = `Your proof of level in ${subject.subjectName} has been accepted`;
   await createProofOfLevelAcceptedNoti({
     originUserId: userId,
     targetUserId: request.sender,
     requestId: request._id,
     proofOfLevelId: proof._id,
+    content: notiContent,
   });
 
   return res.status(StatusCodes.CREATED).json({
@@ -318,10 +322,13 @@ export const rejectProofOfLevelRequest = async (
   request.noteOfReviewer = noteOfReviewer;
   await request.save();
 
+  const subject = await SubjectModel.findById(request.subject);
+  let notiContent = `Your proof of level in ${subject.subjectName} has been rejected`;
   await createProofOfLevelRejectedNoti({
     originUserId: userId,
     targetUserId: request.sender,
     requestId: request._id,
+    content: notiContent,
   });
 
   return res.status(StatusCodes.CREATED).json({

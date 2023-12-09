@@ -123,11 +123,13 @@ export const vnpUrlIpn = async (req: Request, res: Response) => {
           userId: rechargeOrder.user,
           amountOfCoin: rechargeOrder.package.amountOfCoin,
         });
+        let notiContent = `You have recharged ${rechargeOrder.package.amountOfCoin} coins successfully`;
         await createRechargeCoinSuccessNoti({
           originUserId: rechargeOrder.user,
           targetUserId: rechargeOrder.user,
           orderId: rechargeOrder._id,
           amountOfCoin: rechargeOrder.amountOfCoin,
+          content: notiContent,
         });
       } else {
         rechargeOrder.state = PaymentTransactionState.FAILED;

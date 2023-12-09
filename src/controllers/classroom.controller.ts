@@ -40,16 +40,13 @@ import {
 } from "../utils/response.util.js";
 import { ForbiddenError } from "../errors/forbidden.error.js";
 import { ConflictError } from "../errors/conflict.error.js";
-import { InternalServerError } from "../errors/internal-server-error.error.js";
 import { createLocation } from "../service/location.service.js";
 
 import schedule from "node-schedule";
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { ClassroomParams } from "../dtos/classroom.dto.js";
 import {
-  createClassroomFinishedNoti,
   createClassroomNewMemberNoti,
-  createClassroomStartedNoti,
   createClassroomTerminatedNoti,
   createJoinRequestAcceptedNoti,
   createJoinRequestRejectedNoti,
@@ -466,10 +463,13 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     { new: true }
   );
 
+  const notiContent = `You have joined ${updatedClassroom.classroomName}`;
+
   await createClassroomNewMemberNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: userId,
     classroomId: updatedClassroom._id,
+    content: notiContent,
   });
   //TODO: push noti
 
@@ -560,10 +560,13 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     { new: true }
   );
 
+  const notiContent = `You have joined ${updatedClassroom.classroomName}`;
+
   await createClassroomNewMemberNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: userId,
     classroomId: updatedClassroom._id,
+    content: notiContent,
   });
   //TODO: push noti
 
@@ -610,12 +613,14 @@ export const endClassroom = async (req: Request, res: Response) => {
     throw new BadRequestError("Something went wrong!");
   }
 
+  let notiContent = `${classroom.classroomName} has been terminated`;
   await Promise.all(
     classroom.currentParticipants.map(async (user: any) => {
       await createClassroomTerminatedNoti({
         originUserId: classroom.owner,
         targetUserId: user,
         classroomId: classroom._id,
+        content: notiContent,
       });
     })
   );
@@ -687,17 +692,20 @@ export const acceptJoinRequest = async (req: Request, res: Response) => {
     { new: true }
   );
 
-  await createClassroomNewMemberNoti({
-    originUserId: updatedClassroom.owner,
-    targetUserId: request.user,
-    classroomId: updatedClassroom._id,
-  });
+  let notiContent = `Your join request to ${updatedClassroom.classroomName} has been accepted`;
   await createJoinRequestAcceptedNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: request.user,
     classroomId: updatedClassroom._id,
+    content: notiContent,
   });
-  //TODO: push noti
+  notiContent = `You have joined ${updatedClassroom.classroomName}`;
+  await createClassroomNewMemberNoti({
+    originUserId: updatedClassroom.owner,
+    targetUserId: request.user,
+    classroomId: updatedClassroom._id,
+    content: notiContent,
+  });
 
   // update request
   request.reviewer = userId;
@@ -747,10 +755,13 @@ export const rejectJoinRequest = async (req: Request, res: Response) => {
   request.state = RequestState.REJECTED;
   await request.save();
 
+  const notiContent = `Your join request to ${updatedClassroom.classroomName} has been rejected`;
+
   await createJoinRequestRejectedNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: request.user,
     classroomId: updatedClassroom._id,
+    content: notiContent,
   });
 
   return res.status(StatusCodes.OK).json(
@@ -873,10 +884,12 @@ export const kickUser = async (req: Request, res: Response) => {
     }
   );
 
+  let notiContent = `You have been kicked from ${updatedClassroom.classroomName}`;
   await createMemberKickedNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: userId,
     classroomId: updatedClassroom._id,
+    content: notiContent,
   });
 
   return res.status(StatusCodes.OK).json(
@@ -923,10 +936,12 @@ export const updateClassroomTutor = async (req: Request, res: Response) => {
     }
   );
 
+  let notiContent = `You have been granted as tutor in ${updatedClassroom.classroomName}`;
   await createTutorUpdatedNoti({
     originUserId: updatedClassroom.owner,
     targetUserId: userId,
     classroomId: updatedClassroom._id,
+    content: notiContent,
   });
 
   return res.status(StatusCodes.OK).json(
@@ -965,10 +980,12 @@ export const updateClassroomOwner = async (req: Request, res: Response) => {
     }
   );
 
+  let notiContent = `You have been granted as owner of ${updatedClassroom.classroomName}`;
   await createOwnerUpdatedNoti({
     originUserId: oldOwnerId,
     targetUserId: updatedClassroom.owner,
     classroomId: updatedClassroom._id,
+    content: notiContent,
   });
 
   return res.status(StatusCodes.OK).json(

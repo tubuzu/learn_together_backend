@@ -22,6 +22,7 @@ export const createClassroomNewMemberNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__NEW_MEMBER,
     extraData: request,
   });
@@ -33,6 +34,7 @@ export const createJoinRequestRejectedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__JOIN_REQUEST_REJECTED,
     extraData: request,
   });
@@ -44,6 +46,7 @@ export const createJoinRequestAcceptedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__JOIN_REQUEST_ACCEPTED,
     extraData: request,
   });
@@ -55,6 +58,7 @@ export const createMemberKickedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__MEMBER_KICKED,
     extraData: request,
   });
@@ -66,6 +70,7 @@ export const createTutorUpdatedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__TUTOR_UPDATED,
     extraData: request,
   });
@@ -77,6 +82,7 @@ export const createOwnerUpdatedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__OWNER_UPDATED,
     extraData: request,
   });
@@ -88,6 +94,7 @@ export const createClassroomTerminatedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__CLASSROOM_TERMINATED,
     extraData: request,
   });
@@ -98,6 +105,7 @@ export const createClassroomStartedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__CLASSROOM_STARTED,
     extraData: request,
   });
@@ -108,6 +116,7 @@ export const createClassroomFinishedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.CLASSROOM__CLASSROOM_FINISHED,
     extraData: request,
   });
@@ -119,6 +128,7 @@ export const createProofOfLevelAcceptedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.PROOF_OF_LEVEL__PROOF_OF_LEVEL_ACCEPTED,
     extraData: request,
   });
@@ -129,6 +139,7 @@ export const createProofOfLevelRejectedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.PROOF_OF_LEVEL__PROOF_OF_LEVEL_REJECTED,
     extraData: request,
   });
@@ -140,6 +151,7 @@ export const createRechargeCoinSuccessNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.RECHARGE__RECHARGE_COIN_SUCCESS,
     extraData: request,
   });
@@ -151,6 +163,19 @@ export const createDonateCoinSuccessNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
+    notificationCode: NotificationCode.DONATE__DONATE_COIN_SUCCESS,
+    extraData: request,
+  });
+};
+
+export const createReceivedCoinNoti = async (
+  request: DonateCoinSuccessNotiDTO
+) => {
+  return await NotificationModel.create({
+    originUser: request.originUserId,
+    targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.DONATE__DONATE_COIN_SUCCESS,
     extraData: request,
   });
@@ -162,6 +187,7 @@ export const createWithdrawRequestSubmittedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.WITHDRAW__WITHDRAW_REQUEST_SUBMITTED,
     extraData: request,
   });
@@ -173,6 +199,7 @@ export const createWithdrawRequestCanceledNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.WITHDRAW__WITHDRAW_REQUEST_CANCELED,
     extraData: request,
   });
@@ -184,6 +211,7 @@ export const createWithdrawRequestAcceptedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.WITHDRAW__WITHDRAW_REQUEST_ACCEPTED,
     extraData: request,
   });
@@ -195,6 +223,7 @@ export const createWithdrawRequestRejectedNoti = async (
   return await NotificationModel.create({
     originUser: request.originUserId,
     targetUser: request.targetUserId,
+    content: request.content,
     notificationCode: NotificationCode.WITHDRAW__WITHDRAW_REQUEST_REJECTED,
     extraData: request,
   });

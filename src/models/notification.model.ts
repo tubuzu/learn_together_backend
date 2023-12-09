@@ -13,6 +13,7 @@ const notificationSchema = new mongoose.Schema<NotificationDocument>(
       ref: "User",
       required: true,
     },
+    content: { type: String, required: true },
     hasRead: { type: Boolean, default: false },
     notificationCode: {
       type: String,
@@ -35,6 +36,7 @@ export const NotificationModel = mongoose.model(
 export interface NotificationDocument extends Document {
   originUser: string;
   targetUser: string;
+  content: string;
   notificationCode: string;
   hasRead: boolean;
   extraData: object;

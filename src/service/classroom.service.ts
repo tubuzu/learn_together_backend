@@ -188,12 +188,14 @@ export const findUserCurClassesAndPaging = async (
 export const updateFinishedClassroom = async (id: string) => {
   const curClass = await ClassroomModel.findById(id);
   updateClassroomState({ _id: id }, ClassroomState.FINISHED);
+  let notiContent = `${curClass.classroomName} has finished`;
   await Promise.all(
     curClass.currentParticipants.map(async (user: any) => {
       await createClassroomFinishedNoti({
         originUserId: curClass.owner,
         targetUserId: user,
         classroomId: id,
+        content: notiContent,
       });
     })
   );
@@ -202,12 +204,14 @@ export const updateFinishedClassroom = async (id: string) => {
 export const updateStartedClassroom = async (id: string) => {
   const curClass = await ClassroomModel.findById(id);
   updateClassroomState({ _id: id }, ClassroomState.LEARNING);
+  let notiContent = `${curClass.classroomName} has been started`;
   await Promise.all(
     curClass.currentParticipants.map(async (user: any) => {
       await createClassroomStartedNoti({
         originUserId: curClass.owner,
         targetUserId: user,
         classroomId: id,
+        content: notiContent,
       });
     })
   );
