@@ -3,6 +3,8 @@ import "dotenv/config";
 import "express-async-errors";
 import express from "express";
 import { connectDB } from "./config/mongodb.connect.js";
+import cron from "node-cron";
+import https from "https";
 
 //routes
 import { authRoutes } from "./routes/auth.routes.js";
@@ -17,6 +19,8 @@ import { rechargeRoutes } from "./routes/recharge.routes.js";
 import { coinPackageRoutes } from "./routes/coinPackage.routes.js";
 import { donateRoutes } from "./routes/donate.routes.js";
 import { withdrawRoutes } from "./routes/withdraw.routes.js";
+import { notificationRoutes } from "./routes/notification.routes.js";
+import { classroomMessageRoutes } from "./routes/classroomMessage.routes.js";
 
 // error handler
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";
@@ -86,6 +90,7 @@ app.use("/api/v1", donateRoutes);
 app.use("/api/v1", withdrawRoutes);
 app.use("/api/v1", coinPackageRoutes);
 app.use("/api/v1", notificationRoutes);
+app.use("/api/v1", classroomMessageRoutes);
 
 // Error Handling middlewares
 app.use(notFound);
@@ -98,10 +103,25 @@ server.on("listening", () => {
   console.log(`Server running on PORT ${PORT}...`);
 });
 
+// import { Server } from "socket.io";
+// import { WebSockets } from "./utils/webSocket.js";
+// const webSockets = new WebSockets();
+
+// export const socketio = new Server(server, {
+//   pingTimeout: 60000,
+//   cors: {
+//     // origin: "https://learn-together.onrender.com",
+//     origin: `http://localhost:${PORT}`,
+//     credentials: true,
+//   },
+// });
+
+// import events from "events";
+// export const eventEmitter = new events.EventEmitter();
+
+// socketio.on("connection", webSockets.connection);
+
 // Keep server on Render alive
-import cron from "node-cron";
-import https from "https";
-import { notificationRoutes } from "./routes/notification.routes.js";
 
 cron.schedule("*/14 * * * *", () => {
   https

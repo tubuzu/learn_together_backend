@@ -37,8 +37,4 @@ export interface CoinPackageDocument extends Document {
 
   isDeleted: boolean;
   deletedAt?: Date;
-
-  matchPassword: (pw: string) => Promise<boolean>;
-  createAccessToken: (sessionId: string) => string;
-  createRefreshToken: (sessionId: string) => string;
 }

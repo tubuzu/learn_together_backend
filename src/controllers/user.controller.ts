@@ -5,11 +5,9 @@ import { findAndUpdateUser } from "../service/user.service.js";
 import { UserModel } from "../models/user.model.js";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { NotFoundError } from "../errors/not-found.error.js";
-
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "../config/firebase.config.js";
-import { processFileMiddleware } from "../middlewares/upload.middleware.js";
+import { processUserFileMiddleware } from "../middlewares/upload.middleware.js";
 import { pageResponse } from "../utils/response.util.js";
+import { uploadFile } from "../utils/upload-file.js";
 
 // const { get } = lodashPkg;
 
@@ -96,7 +94,7 @@ export const getUserById = async (req: Request, res: Response) => {
  * @route PATCH /api/v1/user/update-profile
  */
 export const updateUserProfile = async (req: Request, res: Response) => {
-  await processFileMiddleware(req, res);
+  await processUserFileMiddleware(req, res);
 
   const {
     firstName,
@@ -110,48 +108,16 @@ export const updateUserProfile = async (req: Request, res: Response) => {
   let avatar, background;
 
   if (req.files && "avatar" in req.files && req.files.avatar[0]) {
-    const storageRef = ref(
-      storage,
-      `users/${res.locals.userData.user}/avatar/${req.files.avatar[0].originalname}`
+    avatar = await uploadFile(
+      req.files.avatar[0],
+      `users/${res.locals.userData.user}/avatar`
     );
-
-    // Create file metadata including the content type
-    const metadata = {
-      contentType: req.files.avatar[0].mimetype,
-    };
-
-    // Upload the file in the bucket storage
-    await uploadBytesResumable(
-      storageRef,
-      req.files.avatar[0].buffer,
-      metadata
-    ).then(async (snapshot) => {
-      return await getDownloadURL(snapshot.ref).then((url) => {
-        avatar = url;
-      });
-    });
   }
   if (req.files && "background" in req.files && req.files.background[0]) {
-    const storageRef = ref(
-      storage,
-      `users/${res.locals.userData.user}/background/${req.files.background[0].originalname}`
+    background = await uploadFile(
+      req.files.background[0],
+      `users/${res.locals.userData.user}/background`
     );
-
-    // Create file metadata including the content type
-    const metadata = {
-      contentType: req.files.background[0].mimetype,
-    };
-
-    // Upload the file in the bucket storage
-    await uploadBytesResumable(
-      storageRef,
-      req.files.background[0].buffer,
-      metadata
-    ).then(async (snapshot) => {
-      return await getDownloadURL(snapshot.ref).then((url) => {
-        background = url;
-      });
-    });
   }
 
   let filteredUpdateObj = Object.fromEntries(
@@ -198,7 +164,7 @@ export const getAllUsersProfile = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const perPage = parseInt(req.query.perPage as string) || 10;
   const users = await UserModel.find({})
-    .sort({ "createdAt": -1 })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * perPage)
     .limit(perPage);
 

@@ -4,12 +4,9 @@ import { ProofOfLevelRequestModel } from "../models/proofOfLevelRequest.model.js
 import { ProofOfLevelModel } from "../models/proofOfLevel.model.js";
 import { NotFoundError } from "../errors/not-found.error.js";
 import { RequestState } from "../utils/const.js";
-import { giveCurrentDateTime } from "../utils/upload-file.js";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "../config/firebase.config.js";
+import { uploadFile } from "../utils/upload-file.js";
 import { BadRequestError } from "../errors/bad-request.error.js";
-import { processFileMiddleware } from "../middlewares/upload.middleware.js";
-import { findAndUpdateUser } from "../service/user.service.js";
+import { processDocumentFileMiddleware } from "../middlewares/upload.middleware.js";
 import { pageResponse } from "../utils/response.util.js";
 import {
   createProofOfLevelAcceptedNoti,
@@ -21,7 +18,7 @@ import { SubjectModel } from "../models/subject.model.js";
 //@route           GET /api/v1/tutor?search=&subjectId=
 //@access          Public
 export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
-  await processFileMiddleware(req, res);
+  await processDocumentFileMiddleware(req, res);
 
   const { subjectId, noteOfSender } = req.body;
 
@@ -57,39 +54,12 @@ export const sendProofOfLevelRequest = async (req: Request, res: Response) => {
   let documents: any[] = [];
   if (req.files && "documents" in req.files && req.files.documents) {
     documents = await Promise.all(
-      req.files.documents.map(async (file) => {
-        try {
-          const dateTime = giveCurrentDateTime();
-
-          const storageRef = ref(
-            storage,
-            `users/${res.locals.userData.user}/proofs-of-level/${subjectId}/${
-              dateTime + "___" + file.originalname
-            }`
-          );
-
-          // Create file metadata including the content type
-          const metadata = {
-            contentType: file.mimetype,
-          };
-
-          // Upload the file in the bucket storage
-          const url = await uploadBytesResumable(
-            storageRef,
-            file.buffer,
-            metadata
-          ).then(async (snapshot) => {
-            return await getDownloadURL(snapshot.ref).then((url) => url);
-          });
-
-          return url;
-        } catch (error: any) {
-          return res.status(400).json({
-            success: false,
-            message: error.message,
-          });
-        }
-      })
+      req.files.documents.map(async (file) =>
+        uploadFile(
+          file,
+          `users/${res.locals.userData.user}/proofs-of-level/${subjectId}`
+        )
+      )
     );
   }
 
