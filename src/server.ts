@@ -103,26 +103,33 @@ server.on("listening", () => {
   console.log(`Server running on PORT ${PORT}...`);
 });
 
-import { Server } from "socket.io";
-import { WebSockets } from "./utils/webSocket.js";
-const webSockets = new WebSockets();
+// import { Server } from "socket.io";
+// const webSockets = new WebSockets();
 
-export const socketio = new Server(server, {
-  pingTimeout: 60000,
-  cors: {
-    origin: "https://learn-together.onrender.com",
-    // origin: `http://localhost:${PORT}`,
-    credentials: true,
-  },
+// export const socketio = new Server(server, {
+//   pingTimeout: 60000,
+//   cors: {
+//     // origin: "https://learn-together.onrender.com",
+//     origin: `http://localhost:${PORT}`,
+//     credentials: true,
+//   },
+// });
+
+// import events from "events";
+// import ClassroomSocket from "./utils/classroomSocket.js";
+// export const eventEmitter = new events.EventEmitter();
+import WebSocket from "./utils/webSocket.js";
+
+const io = WebSocket.getInstance(server);
+// io.initializeHandlers([
+//   { path: '/classroom', handler: new ClassroomSocket() }
+// ]);
+io.on("connection", (socket) => {
+  // webSockets.connection(socket);
+  io.handleConnection(socket);
 });
 
-import events from "events";
-export const eventEmitter = new events.EventEmitter();
-
-socketio.on("connection", webSockets.connection);
-
 // Keep server on Render alive
-
 cron.schedule("*/14 * * * *", () => {
   https
     .get(`${process.env.SERVER_ENDPOINT!}/test`, (res: any) => {

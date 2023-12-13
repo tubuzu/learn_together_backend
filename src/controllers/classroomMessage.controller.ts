@@ -8,8 +8,9 @@ import { ClassroomModel } from "../models/classroom.model.js";
 import { ClassroomMessageModel } from "../models/classroomMessage.model.js";
 import { pageResponse, successResponse } from "../utils/response.util.js";
 import { uploadFile } from "../utils/upload-file.js";
-import { WebSockets } from "../utils/webSocket.js";
-import { socketio } from "../server.js";
+import WebSocket from "../utils/webSocket.js";
+// import { WebSockets } from "../utils/webSocket.js";
+// import { socketio } from "../server.js";
 
 export const getMessagesByClassroomId = async (req: Request, res: Response) => {
   try {
@@ -79,9 +80,11 @@ export const sendClassroomMessage = async (req: Request, res: Response) => {
       .populate("sender", "_id avatar firstname lastname email")
       .execPopulate();
 
-    socketio
-      .to(`classroom-${classroom._id}`)
-      .emit("onClassroomMessage", { message: message, classroom: classroom });
+    const io = WebSocket.getInstance();
+    io.to(`classroom-${classroom._id}`).emit("onClassroomMessage", {
+      message: message,
+      classroom: classroom,
+    });
 
     res.status(StatusCodes.CREATED).json(successResponse({ data: message }));
   } catch (error: any) {
@@ -113,14 +116,16 @@ export const updateClassroomMessageById = async (
 
     const classroom = await ClassroomModel.findById(classroomId);
     if (!classroom) throw new NotFoundError("Classroom not found!");
+    const io = WebSocket.getInstance();
     classroom.currentParticipants.map((user: any) => {
       if (
         user != message.sender._id &&
-        WebSockets.onlineUsers.has(user.toString())
+        WebSocket.onlineUsers.has(user.toString())
       )
-        socketio
-          .to(WebSockets.onlineUsers.get(user.toString()))
-          .emit("onClassroomMessageUpdate", message);
+        io.to(WebSocket.onlineUsers.get(user.toString())).emit(
+          "onClassroomMessageUpdate",
+          message
+        );
     });
 
     res.status(StatusCodes.OK).json(
@@ -155,14 +160,16 @@ export const deleteClassroomMessageById = async (
     const { _id, currentParticipants } = await ClassroomModel.findById(
       classroomId
     );
+    const io = WebSocket.getInstance();
     currentParticipants.map((user: any) => {
-      if (user != message.sender && WebSockets.onlineUsers.has(user.toString()))
-        socketio
-          .to(WebSockets.onlineUsers.get(user.toString()))
-          .emit("onClassroomMessageDelete", {
+      if (user != message.sender && WebSocket.onlineUsers.has(user.toString()))
+        io.to(WebSocket.onlineUsers.get(user.toString())).emit(
+          "onClassroomMessageDelete",
+          {
             classroomId: _id,
             messageId: message._id,
-          });
+          }
+        );
     });
 
     res.status(StatusCodes.OK).json(
