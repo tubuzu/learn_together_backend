@@ -38,41 +38,47 @@ class WebSocket extends Server {
       tempId = "";
     });
     // add identity of user mapped to the socket id
-    socket.on("identity", (userId: string) => {
+    socket.on("identity", ({ userId }: { userId: string }) => {
       WebSocket.onlineUsers.set(userId, socket.id);
       tempId = userId;
       console.log(`user ${userId} connect`);
     });
     // onClassroomJoin
-    socket.on("onClassroomJoin", ({ classroomId }: any) => {
+    socket.on("onClassroomJoin", ({ classroomId }: { classroomId: string }) => {
       console.log(`${tempId} joined a Classroom of ID: ${classroomId}`);
       socket.join(`classroom-${classroomId}`);
       WebSocket.io.to(`classroom-${classroomId}`).emit("userClassroomJoin");
     });
     // onClassroomLeave
-    socket.on("onClassroomLeave", ({ classroomId }: any) => {
-      console.log(`${tempId} left a Classroom of ID: ${classroomId}`);
-      socket.leave(`classroom-${classroomId}`);
-      WebSocket.io.to(`classroom-${classroomId}`).emit("userClassroomLeave");
-    });
+    socket.on(
+      "onClassroomLeave",
+      ({ classroomId }: { classroomId: string }) => {
+        console.log(`${tempId} left a Classroom of ID: ${classroomId}`);
+        socket.leave(`classroom-${classroomId}`);
+        WebSocket.io.to(`classroom-${classroomId}`).emit("userClassroomLeave");
+      }
+    );
 
-    socket.on("getOnlineClassroomUsers", async ({ classroomId }: any) => {
-      console.log("getOnlineClassroomUsers");
-      const classroom = await ClassroomModel.findById(classroomId).populate(
-        "currentParticipants"
-      );
-      if (!classroom) return;
-      const onlineUsers: any = [];
-      const offlineUsers: any = [];
-      classroom.currentParticipants.forEach((user: any) => {
-        const socket = WebSocket.onlineUsers.get(user._id.toString());
-        socket ? onlineUsers.push(user) : offlineUsers.push(user);
-      });
-      socket.emit("onlineClassroomUsersReceived", {
-        onlineUsers,
-        offlineUsers,
-      });
-    });
+    socket.on(
+      "getOnlineClassroomUsers",
+      async ({ classroomId }: { classroomId: string }) => {
+        console.log("getOnlineClassroomUsers");
+        const classroom = await ClassroomModel.findById(classroomId).populate(
+          "currentParticipants"
+        );
+        if (!classroom) return;
+        const onlineUsers: any = [];
+        const offlineUsers: any = [];
+        classroom.currentParticipants.forEach((user: any) => {
+          const socket = WebSocket.onlineUsers.get(user._id.toString());
+          socket ? onlineUsers.push(user) : offlineUsers.push(user);
+        });
+        socket.emit("onlineClassroomUsersReceived", {
+          onlineUsers,
+          offlineUsers,
+        });
+      }
+    );
   }
 
   static getByValue(searchValue: any) {
