@@ -77,7 +77,7 @@ export const sendClassroomMessage = async (req: Request, res: Response) => {
     });
 
     await message
-      .populate("sender", "_id avatar firstname lastname email")
+      .populate("sender", "_id avatar firstName lastName email")
       .execPopulate();
 
     const io = WebSocket.getInstance();
@@ -111,7 +111,7 @@ export const updateClassroomMessageById = async (
       { content: content },
       { new: true }
     )
-      .populate("sender", "_id avatar firstname lastname email")
+      .populate("sender", "_id avatar firstName lastName email")
       .populate("classroom");
 
     const classroom = await ClassroomModel.findById(classroomId);
