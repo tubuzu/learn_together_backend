@@ -119,8 +119,14 @@ server.on("listening", () => {
 // import ClassroomSocket from "./utils/classroomSocket.js";
 // export const eventEmitter = new events.EventEmitter();
 import WebSocket from "./utils/webSocket.js";
+import { instrument } from "@socket.io/admin-ui";
 
 const io = WebSocket.getInstance(server);
+
+instrument(io, {
+  auth: false,
+  mode: "development",
+});
 // io.initializeHandlers([
 //   { path: '/classroom', handler: new ClassroomSocket() }
 // ]);
