@@ -132,6 +132,7 @@ instrument(io, {
 // ]);
 io.on("connection", (socket) => {
   // webSockets.connection(socket);
+  socket.emit("hello", "world");
   io.handleConnection(socket);
 });
 
