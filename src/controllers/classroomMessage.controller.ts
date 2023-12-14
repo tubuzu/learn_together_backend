@@ -110,9 +110,7 @@ export const updateClassroomMessageById = async (
       messageId,
       { content: content },
       { new: true }
-    )
-      .populate("sender", "_id avatar firstName lastName email")
-      .populate("classroom");
+    ).populate("sender", "_id avatar firstName lastName email");
 
     const classroom = await ClassroomModel.findById(classroomId);
     if (!classroom) throw new NotFoundError("Classroom not found!");
@@ -131,7 +129,6 @@ export const updateClassroomMessageById = async (
     res.status(StatusCodes.OK).json(
       successResponse({
         data: {
-          classroomId: classroom._id,
           message,
         },
       })
