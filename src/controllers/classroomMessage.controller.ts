@@ -56,7 +56,7 @@ export const sendClassroomMessage = async (req: Request, res: Response) => {
     throw new BadRequestError("Invalid data passed into request");
   }
 
-  const classroom = ClassroomModel.findById(classroomId);
+  const classroom = await ClassroomModel.findById(classroomId);
   if (!classroom) throw new NotFoundError("Classroom not found!");
 
   let attachments: any[] = [];
