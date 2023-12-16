@@ -59,6 +59,60 @@ const MAX_CLASSROOM_JOIN_LIMIT = 5;
 
 const scheduledTasks: any = [];
 
+export const updateClassroomStateOnServerRestart = async () => {
+  const now = new Date();
+
+  //update waiting classrooms's state
+  const waitingClassrooms = await ClassroomModel.find({
+    startTime: { $gt: now },
+    terminated: false,
+  });
+  waitingClassrooms.map(async (classroom: any) => {
+    if (classroom.state != ClassroomState.WAITING)
+      await ClassroomModel.findByIdAndUpdate(classroom._id, {
+        state: ClassroomState.WAITING,
+      });
+
+    const startTask = schedule.scheduleJob(
+      new Date(classroom.startTime),
+      async () => updateStartedClassroom(classroom._id)
+    );
+    const endTask = schedule.scheduleJob(
+      new Date(classroom.endTime),
+      async () => updateFinishedClassroom(classroom._id)
+    );
+    scheduledTasks[classroom._id] = [startTask, endTask];
+  });
+
+  //update learning classrooms's state
+  const learningClassrooms = await ClassroomModel.find({
+    startTime: { $lt: now },
+    endTime: { $gt: now },
+    terminated: false,
+  });
+  learningClassrooms.map(async (classroom: any) => {
+    if (classroom.state != ClassroomState.LEARNING)
+      await updateStartedClassroom(classroom._id);
+
+    const endTask = schedule.scheduleJob(
+      new Date(classroom.endTime),
+      async () => updateFinishedClassroom(classroom._id)
+    );
+    scheduledTasks[classroom._id] = [() => {}, endTask];
+  });
+
+  //update finished classrooms's state
+  const finishedClassrooms = await ClassroomModel.find({
+    endTime: { $lt: now },
+    terminated: false,
+  });
+
+  finishedClassrooms.map(async (classroom: any) => {
+    if (classroom.state != ClassroomState.FINISHED)
+      await updateFinishedClassroom(classroom._id);
+  });
+};
+
 //@description     Search classroom
 //@route           GET /api/v1/classroom/search?subjectName=
 //@access          Public

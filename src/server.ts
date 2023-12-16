@@ -120,6 +120,7 @@ server.on("listening", () => {
 // export const eventEmitter = new events.EventEmitter();
 import WebSocket from "./utils/webSocket.js";
 import { instrument } from "@socket.io/admin-ui";
+import { updateClassroomStateOnServerRestart } from "./controllers/classroom.controller.js";
 
 const io = WebSocket.getInstance(server);
 
@@ -152,3 +153,6 @@ cron.schedule("*/14 * * * *", () => {
       console.error("Error during Restart: ", err.message);
     });
 });
+
+// Update classrooms's state after restart server
+await updateClassroomStateOnServerRestart();
