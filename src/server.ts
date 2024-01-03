@@ -45,7 +45,7 @@ connectDB();
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000,
-    max: 300,
+    max: 500,
   })
 );
 app.use(express.json());
