@@ -455,6 +455,11 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     currentParticipants: { $in: res.locals.userData.user },
     isDeleted: false,
   });
+  if (existClassrooms && existClassrooms.length >= MAX_CLASSROOM_JOIN_LIMIT) {
+    throw new ForbiddenError(
+      `You can only join a maximum of ${MAX_CLASSROOM_JOIN_LIMIT} classrooms!`
+    );
+  }
 
   // check if classroom is public
   if (!classroom.isPublic) {
@@ -594,6 +599,11 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
     currentParticipants: { $in: res.locals.userData.user },
     isDeleted: false,
   });
+  if (existClassrooms && existClassrooms.length >= MAX_CLASSROOM_JOIN_LIMIT) {
+    throw new ForbiddenError(
+      `You can only join a maximum of ${MAX_CLASSROOM_JOIN_LIMIT} classrooms!`
+    );
+  }
 
   // check if classroom is public
   if (classroom.isPublic) {
