@@ -47,28 +47,29 @@ export async function terminateClassroom(
     {
       currentParticipants: [],
       available: false,
+      state: ClassroomState.FINISHED,
       terminated: true,
     }
   );
 }
 
-export const updateClassroomStateInterval = async () => {
-  const curTime = new Date();
-  const classrooms = await ClassroomModel.find({
-    $or: [
-      { endTime: { $lte: curTime }, state: ClassroomState.LEARNING },
-      { startTime: { $lte: curTime }, state: ClassroomState.WAITING },
-    ],
-    terminated: false,
-  });
+// export const updateClassroomStateInterval = async () => {
+//   const curTime = new Date();
+//   const classrooms = await ClassroomModel.find({
+//     $or: [
+//       { endTime: { $lte: curTime }, state: ClassroomState.LEARNING },
+//       { startTime: { $lte: curTime }, state: ClassroomState.WAITING },
+//     ],
+//     terminated: false,
+//   });
 
-  for (let classroom of classrooms) {
-    if (classroom.endTime <= curTime) classroom.state = ClassroomState.FINISHED;
-    else if (classroom.startTime <= curTime)
-      classroom.state = ClassroomState.LEARNING;
-    await classroom.save();
-  }
-};
+//   for (let classroom of classrooms) {
+//     if (classroom.endTime <= curTime) classroom.state = ClassroomState.FINISHED;
+//     else if (classroom.startTime <= curTime)
+//       classroom.state = ClassroomState.LEARNING;
+//     await classroom.save();
+//   }
+// };
 
 export const updateClassroomState = async (query: any, state: string) => {
   if (!Object.values(ClassroomState).includes(state)) return;

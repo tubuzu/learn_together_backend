@@ -2,10 +2,7 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { BadRequestError } from "../errors/bad-request.error.js";
 import { UnauthenticatedError } from "../errors/unauthenticated.error.js";
-import {
-  ClassroomDocument,
-  ClassroomModel,
-} from "../models/classroom.model.js";
+import { ClassroomModel } from "../models/classroom.model.js";
 import {
   createKeywordByLocation,
   createKeywordBySubjectAndState,
@@ -16,8 +13,6 @@ import {
   findOneClassroom,
   findUserCurClassesAndPaging,
   terminateClassroom,
-  updateClassroomState,
-  updateClassroomStateInterval,
   updateFinishedClassroom,
   updateStartedClassroom,
 } from "../service/classroom.service.js";
@@ -26,14 +21,9 @@ import {
   ClassroomMemberRole,
   ClassroomState,
   RequestState,
-  UserType,
 } from "../utils/const.js";
 import { JoinRequestModel } from "../models/joinRequest.model.js";
-import { UserModel } from "../models/user.model.js";
-import { CustomAPIError } from "../errors/custom-api.error.js";
-// import cron from "node-cron";
 import {
-  errorResponse,
   getPage,
   pageResponse,
   successResponse,
@@ -426,7 +416,6 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
   let keyword: any = {
     _id: classroomId,
     available: true,
-    // terminated: false,
     currentParticipants: { $nin: userId },
     // isDeleted: false,
   };
@@ -546,7 +535,6 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
   let keyword: any = {
     _id: classroomId,
     available: true,
-    // terminated: false,
     currentParticipants: { $nin: userId },
     // isDeleted: false,
   };
@@ -656,6 +644,7 @@ export const endClassroom = async (req: Request, res: Response) => {
     },
     {
       available: false,
+      state: ClassroomState.FINISHED,
       terminated: true,
     },
     {
@@ -714,7 +703,6 @@ export const acceptJoinRequest = async (req: Request, res: Response) => {
   let classroom = await ClassroomModel.findOne({
     _id: request.classroom, // Lọc theo _id
     available: true,
-    // terminated: false,
     isDeleted: false,
   });
   if (!classroom) throw new NotFoundError("Classroom not found!");
@@ -1063,7 +1051,10 @@ export const getUserClassroomHistory = async (req: Request, res: Response) => {
   const classrooms = await ClassroomModel.find({
     historyParticipants: { $in: userId },
     terminated: true,
-  }).sort({ createdAt: -1 });
+  })
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * perPage)
+    .limit(perPage);
 
   return res.status(StatusCodes.OK).json(
     successResponse({
