@@ -4,6 +4,7 @@ import { BadRequestError } from "../errors/bad-request.error.js";
 import { UnauthenticatedError } from "../errors/unauthenticated.error.js";
 import { ClassroomModel } from "../models/classroom.model.js";
 import {
+  checkTimeConflict,
   createKeywordByLocation,
   createKeywordBySubjectAndState,
   findAndUpdateClassroom,
@@ -202,7 +203,7 @@ export const createClassroom = async (req: Request, res: Response) => {
     terminated: false,
     currentParticipants: { $in: res.locals.userData.user },
     isDeleted: false,
-  }).exec();
+  });
   if (existClassrooms && existClassrooms.length >= MAX_CLASSROOM_JOIN_LIMIT) {
     throw new ForbiddenError(
       `You can only join a maximum of ${MAX_CLASSROOM_JOIN_LIMIT} classrooms!`
@@ -253,6 +254,12 @@ export const createClassroom = async (req: Request, res: Response) => {
 
   if (startTime >= endTime || startTime < Date.now()) {
     throw new BadRequestError("Invalid start and end time!");
+  }
+
+  if (!checkTimeConflict(existClassrooms, startTime, endTime)) {
+    throw new BadRequestError(
+      "Study time conflict with your existing classrooms!"
+    );
   }
 
   if (ownerIsTutor) {
@@ -318,7 +325,12 @@ export const updateClassroom = async (req: Request, res: Response) => {
     _id: classroomId,
     terminated: false,
     isDeleted: false,
-  }).exec();
+  });
+  const existClassrooms = await ClassroomModel.find({
+    terminated: false,
+    currentParticipants: { $in: res.locals.userData.user },
+    isDeleted: false,
+  });
 
   if (!classroom) throw new NotFoundError("Classroom not found!");
 
@@ -347,6 +359,19 @@ export const updateClassroom = async (req: Request, res: Response) => {
     }
     if (startTimeFinal >= endTimeFinal) {
       throw new BadRequestError("Invalid start and end time!");
+    }
+    for (let c of existClassrooms) {
+      if (c._id == classroom._id) continue;
+      if (
+        (startTimeFinal >= classroom.startTime &&
+          startTimeFinal < classroom.endTime) ||
+        (endTimeFinal > classroom.startTime &&
+          endTimeFinal <= classroom.endTime)
+      ) {
+        throw new BadRequestError(
+          "Study time conflict with your existing classrooms!"
+        );
+      }
     }
   }
 
@@ -425,6 +450,11 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
       "Classroom is not currently available or you have joined this classroom"
     );
   }
+  const existClassrooms = await ClassroomModel.find({
+    terminated: false,
+    currentParticipants: { $in: res.locals.userData.user },
+    isDeleted: false,
+  });
 
   // check if classroom is public
   if (!classroom.isPublic) {
@@ -437,6 +467,19 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     classroom.currentParticipants.length >= classroom.maxParticipants
   ) {
     throw new ConflictError("This classroom is full!");
+  }
+
+  // check if study time is suitable
+  if (
+    !checkTimeConflict(
+      existClassrooms,
+      Date.parse(classroom.startTime),
+      Date.parse(classroom.endTime)
+    )
+  ) {
+    throw new BadRequestError(
+      "Study time conflict with your existing classrooms!"
+    );
   }
 
   // check for valid role
@@ -546,6 +589,11 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
       "Classroom is not currently available or you have joined this classroom"
     );
   }
+  const existClassrooms = await ClassroomModel.find({
+    terminated: false,
+    currentParticipants: { $in: res.locals.userData.user },
+    isDeleted: false,
+  });
 
   // check if classroom is public
   if (classroom.isPublic) {
@@ -560,6 +608,19 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
   // check secretKey match
   if (classroom.secretKey != secretKey) {
     throw new BadRequestError("secretKey not match!");
+  }
+
+  // check if study time is suitable
+  if (
+    !checkTimeConflict(
+      existClassrooms,
+      Date.parse(classroom.startTime),
+      Date.parse(classroom.endTime)
+    )
+  ) {
+    throw new BadRequestError(
+      "Study time conflict with your existing classrooms!"
+    );
   }
 
   // check if invalid rold

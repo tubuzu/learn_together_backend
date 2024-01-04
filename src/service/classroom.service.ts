@@ -217,3 +217,22 @@ export const updateStartedClassroom = async (id: string) => {
     })
   );
 };
+
+export const checkTimeConflict = (
+  existClassrooms: any[],
+  startTime: number,
+  endTime: number
+) => {
+  for (let classroom of existClassrooms) {
+    // Nếu thời gian bắt đầu hoặc kết thúc của lớp học cần kiểm tra nằm trong khoảng thời gian của một lớp học trong existClassrooms, có nghĩa là có xảy ra giao nhau
+    if (
+      (startTime >= classroom.startTime && startTime < classroom.endTime) ||
+      (endTime > classroom.startTime && endTime <= classroom.endTime)
+    ) {
+      // Trả về false
+      return false;
+    }
+  }
+  // Nếu không có giao nhau với bất kỳ lớp học nào, trả về true
+  return true;
+};
