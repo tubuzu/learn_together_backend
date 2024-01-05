@@ -45,6 +45,7 @@ import {
   createOwnerUpdatedNoti,
   createTutorUpdatedNoti,
 } from "../service/notification.service.js";
+import { UserModel } from "../models/user.model.js";
 
 const MAX_CLASSROOM_JOIN_LIMIT = 5;
 
@@ -265,7 +266,7 @@ export const createClassroom = async (req: Request, res: Response) => {
   if (ownerIsTutor) {
     const proofs = await ProofOfLevelModel.find({ user: userId });
 
-    if (!proofs.some((proof: any) => proof.subject == classroom.subject)) {
+    if (!proofs.some((proof: any) => proof.subject == subject)) {
       throw new BadRequestError(
         "You do not have any proof of level for this classroom subject!"
       );
@@ -274,7 +275,7 @@ export const createClassroom = async (req: Request, res: Response) => {
 
   const location = createLocation({ longitude, latitude });
 
-  const classroom = await ClassroomModel.create({
+  let createObj = {
     classroomName,
     subject,
     maxParticipants,
@@ -297,7 +298,13 @@ export const createClassroom = async (req: Request, res: Response) => {
 
     creator: res.locals.userData.user,
     owner: res.locals.userData.user,
-  });
+  } as any;
+
+  if (ownerIsTutor) createObj.tutor = userId;
+
+  const classroom = await ClassroomModel.create(createObj);
+
+  if (!classroom) throw new BadRequestError("Something went wrong!");
 
   const startTask = schedule.scheduleJob(new Date(startTime), async () =>
     updateStartedClassroom(classroom._id)
@@ -306,8 +313,6 @@ export const createClassroom = async (req: Request, res: Response) => {
     updateFinishedClassroom(classroom._id)
   );
   scheduledTasks[classroom._id] = [startTask, endTask];
-
-  if (!classroom) throw new BadRequestError("Something went wrong!");
 
   return res
     .status(StatusCodes.CREATED)
@@ -410,12 +415,26 @@ export const updateClassroom = async (req: Request, res: Response) => {
       updateObj.state = ClassroomState.LEARNING;
   }
 
+  let resetTutor = false;
+  if (
+    updateObj.subject &&
+    classroom.tutor &&
+    updateObj.subject != classroom.subject
+  ) {
+    resetTutor = true;
+  }
+
   if (Object.keys(updateObj).length !== 0) {
     classroom = await findAndUpdateClassroom(
       {
         _id: classroomId,
       },
-      updateObj,
+      resetTutor
+        ? {
+            ...updateObj,
+            tutor: undefined,
+          }
+        : updateObj,
       {
         new: true,
       }
