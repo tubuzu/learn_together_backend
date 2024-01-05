@@ -266,7 +266,11 @@ export const createClassroom = async (req: Request, res: Response) => {
   if (ownerIsTutor) {
     const proofs = await ProofOfLevelModel.find({ user: userId });
 
-    if (!proofs.some((proof: any) => proof.subject.toString() == subject.toString())) {
+    if (
+      !proofs.some(
+        (proof: any) => proof.subject.toString() == subject.toString()
+      )
+    ) {
       throw new BadRequestError(
         "You do not have any proof of level for this classroom subject!"
       );
@@ -517,7 +521,12 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
   // check if role is tutor and user has proof of level to be a tutor in this class
   if (role == ClassroomMemberRole.TUTOR) {
     const proofs = await ProofOfLevelModel.find({ user: { $eq: userId } });
-    if (!proofs.some((proof: any) => proof.subject.toString() == classroom.subject.toString())) {
+    if (
+      !proofs.some(
+        (proof: any) =>
+          proof.subject.toString() == classroom.subject._id.toString()
+      )
+    ) {
       throw new ForbiddenError(
         "You don't have any proof of level to be a tutor in this classroom!"
       );
@@ -529,7 +538,8 @@ export const joinAPublicClassRoom = async (req: Request, res: Response) => {
     await classroom.populate("joinRequests").execPopulate();
     if (
       classroom.joinRequests.some(
-        (x: any) => x.user.toString() == userId && x.state == RequestState.WAITING
+        (x: any) =>
+          x.user.toString() == userId && x.state == RequestState.WAITING
       )
     ) {
       throw new BadRequestError(
@@ -663,7 +673,11 @@ export const joinAPrivateClassRoom = async (req: Request, res: Response) => {
   // check if role is tutor and user has proof of level to be this classroom tutor
   if (role == ClassroomMemberRole.TUTOR) {
     const proofs = await ProofOfLevelModel.find({ user: { $eq: userId } });
-    if (!proofs.some((proof: any) => proof.subject.toString() == classroom.subject.toString())) {
+    if (
+      !proofs.some(
+        (proof: any) => proof.subject.toString() == classroom.subject._id.toString()
+      )
+    ) {
       throw new ForbiddenError(
         "You don't have any proof of level for this classroom subject!"
       );
@@ -960,7 +974,10 @@ export const leaveClassroom = async (req: Request, res: Response) => {
   if (!classroom) throw new NotFoundError("Classroom not found!");
 
   //terminate classroom if you are the last one / if you are owner
-  if (classroom.currentParticipants.length == 1 || classroom.owner.toString() == userId) {
+  if (
+    classroom.currentParticipants.length == 1 ||
+    classroom.owner.toString() == userId
+  ) {
     await terminateClassroom({
       _id: classroomId,
       terminated: false,
@@ -1054,7 +1071,11 @@ export const updateClassroomTutor = async (req: Request, res: Response) => {
       "Classroom not valid or you are not the owner of this classroom!"
     );
 
-  if (!proofs.some((proof: any) => proof.subject.toString() == classroom.subject.toString())) {
+  if (
+    !proofs.some(
+      (proof: any) => proof.subject.toString() == classroom.subject.toString()
+    )
+  ) {
     throw new BadRequestError(
       "This user do not have any proof of level for this classroom subject!"
     );
