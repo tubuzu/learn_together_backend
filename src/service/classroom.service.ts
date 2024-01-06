@@ -73,15 +73,19 @@ export async function terminateClassroom(
 
 export const updateClassroomState = async (query: any, state: string) => {
   if (!Object.values(ClassroomState).includes(state)) return;
+  
+  let updateObj = {
+    $set: { state: state },
+  } as any;
+  if (state == ClassroomState.FINISHED) updateObj.terminated = true;
+
   await findAndUpdateClassroom(
     {
       ...query,
       terminated: false,
       isDeleted: false,
     },
-    {
-      $set: { state: state },
-    }
+    updateObj
   );
 };
 
